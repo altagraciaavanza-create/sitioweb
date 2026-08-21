@@ -10,6 +10,10 @@ const navItems = [
   { href: "/admin/posts", label: "Actualidad" },
   { href: "/admin/events", label: "Agenda" },
   { href: "/admin/topics", label: "Ideas" },
+  { href: "/admin/participation", label: "Participá" },
+  { href: "/admin/content-types", label: "Tipos de contenido" },
+  { href: "/admin/forms", label: "Formularios" },
+  { href: "/admin/identidad", label: "Identidad visual" },
   { href: "/admin/settings", label: "Configuración" },
 ];
 
@@ -25,6 +29,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <aside className="hidden w-64 flex-col border-r border-border bg-white p-6 md:flex">
         <p className="text-sm font-bold text-fg">Alta Gracia Avanza</p>
         <p className="text-xs text-fg-muted">Panel de administración</p>
+
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex items-center justify-center gap-2 rounded-md border border-border bg-bg-subtle px-3 py-2 text-sm font-medium text-fg hover:bg-border/40"
+        >
+          Ver sitio publicado
+        </a>
 
         <nav className="mt-8 flex flex-col gap-1">
           {navItems.map((item) => (

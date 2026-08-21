@@ -1,0 +1,1 @@
+ALTER TABLE "site_settings" ADD COLUMN "brand_theme_enabled" boolean DEFAULT false NOT NULL;

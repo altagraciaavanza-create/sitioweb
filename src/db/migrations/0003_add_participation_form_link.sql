@@ -1,0 +1,2 @@
+ALTER TABLE "participation_options" ADD COLUMN "form_id" uuid;--> statement-breakpoint
+ALTER TABLE "participation_options" ADD CONSTRAINT "participation_options_form_id_forms_id_fk" FOREIGN KEY ("form_id") REFERENCES "public"."forms"("id") ON DELETE set null ON UPDATE no action;

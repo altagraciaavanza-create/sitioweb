@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import Link from "next/link";
+import { useActionState, useEffect, useRef } from "react";
 import { AdminField, AdminInput, AdminTextarea, AdminButton } from "@/components/admin/admin-ui";
+import { useToast } from "@/components/ui/Toast";
 import { updateSiteSettings, type SettingsFormState } from "./actions";
 
 type Settings = {
@@ -23,6 +25,19 @@ const initialState: SettingsFormState = {};
 
 export function SettingsForm({ settings }: { settings: Settings }) {
   const [state, formAction, pending] = useActionState(updateSiteSettings, initialState);
+  const { toast } = useToast();
+  const notified = useRef<SettingsFormState | null>(null);
+
+  useEffect(() => {
+    if (state === notified.current) return;
+    notified.current = state;
+    if (state.success) {
+      toast({ variant: "success", title: "Configuración guardada" });
+    } else if (state.error) {
+      toast({ variant: "danger", title: "No se pudo guardar", description: state.error });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form action={formAction} className="max-w-2xl space-y-5">
@@ -78,12 +93,16 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         <AdminInput id="ogImageUrl" name="ogImageUrl" defaultValue={settings?.ogImageUrl ?? ""} />
       </AdminField>
 
-      {state.error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {state.error}
+      <div className="rounded-lg border border-brand-100 bg-brand-50 p-4">
+        <p className="text-sm font-semibold text-fg">¿Buscás cambiar los colores y la tipografía del sitio?</p>
+        <p className="mt-1 text-sm text-fg-muted">
+          Eso ahora se maneja desde{" "}
+          <Link href="/admin/identidad" className="text-brand-700 underline hover:no-underline">
+            Identidad visual
+          </Link>
+          , donde podés crear varios perfiles, verlos en vista previa y aplicar el que quieras.
         </p>
-      ) : null}
-      {state.success ? <p className="text-sm text-brand-600">Guardado correctamente.</p> : null}
+      </div>
 
       <AdminButton type="submit" disabled={pending}>
         {pending ? "Guardando..." : "Guardar cambios"}

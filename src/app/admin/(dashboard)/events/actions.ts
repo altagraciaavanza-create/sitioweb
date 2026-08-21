@@ -2,7 +2,6 @@
 
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db, isDbConfigured } from "@/db";
 import { events } from "@/db/schema";
@@ -17,7 +16,7 @@ const eventSchema = z.object({
   published: z.coerce.boolean().default(true),
 });
 
-export type EventFormState = { error?: string };
+export type EventFormState = { error?: string; success?: boolean };
 
 function requireDb() {
   if (!isDbConfigured) {
@@ -55,7 +54,7 @@ export async function createEvent(
 
   revalidatePath("/agenda");
   revalidatePath("/admin/events");
-  redirect("/admin/events");
+  return { success: true };
 }
 
 export async function updateEvent(
@@ -77,7 +76,7 @@ export async function updateEvent(
 
   revalidatePath("/agenda");
   revalidatePath("/admin/events");
-  redirect("/admin/events");
+  return { success: true };
 }
 
 export async function deleteEvent(id: string) {

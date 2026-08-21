@@ -104,3 +104,20 @@ export function AdminEmpty({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+/**
+ * Cuadro de ayuda contextual ("¿cómo funciona esto?"). Se usa arriba de
+ * las secciones más nuevas/menos obvias del panel (Tipos de contenido,
+ * Formularios) para explicar el flujo de trabajo sin depender de que el
+ * usuario ya lo sepa.
+ */
+export function AdminInfoBox({ title, children }: { title?: string; children: ReactNode }) {
+  return (
+    <div className="mb-6 rounded-lg border border-brand-100 bg-brand-50 p-4 text-sm text-fg">
+      {title ? <p className="mb-1 font-semibold text-brand-700">{title}</p> : null}
+      <div className="text-fg [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
+        {children}
+      </div>
+    </div>
+  );
+}

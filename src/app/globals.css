@@ -19,6 +19,9 @@
   --color-accent-500: #d97a3f;
   --color-accent-600: #b4622f;
 
+  --font-sans: "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system,
+    sans-serif;
+
   /* Radii */
   --radius-sm: 0.375rem;
   --radius-md: 0.625rem;
@@ -52,8 +55,7 @@
   --color-accent-500: var(--color-accent-500);
   --color-accent-600: var(--color-accent-600);
 
-  --font-sans: "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system,
-    sans-serif;
+  --font-sans: var(--font-sans);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -64,6 +66,17 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 }
+
+/*
+ * La identidad visual del sitio público (colores + tipografía) ya NO se
+ * fija acá con un selector estático: se administra desde
+ * /admin/identidad, donde se guardan perfiles con sus propios valores y
+ * se aplica el que se quiera. Esos valores se inyectan como estilos
+ * inline en el contenedor del sitio público (ver SiteChrome.tsx +
+ * src/db/theme.ts, themeToCssVars), que pisan las variables definidas
+ * arriba en @theme inline. El panel /admin nunca recibe esos estilos, así
+ * que su aspecto no cambia sea cual sea el perfil aplicado.
+ */
 
 @media (prefers-reduced-motion: reduce) {
   *,

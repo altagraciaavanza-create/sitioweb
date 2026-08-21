@@ -1,11 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { AdminField, AdminInput, AdminTextarea, AdminButton } from "@/components/admin/admin-ui";
+import { useToast } from "@/components/ui/Toast";
 import { updateBlockContent, type BlockFormState } from "./actions";
 import type { BlockType } from "@/db/blocks";
 
 const initialState: BlockFormState = {};
+
+type SelectOption = { id: string; name: string };
 
 export function BlockEditorForm({
   pageId,
@@ -13,15 +16,33 @@ export function BlockEditorForm({
   blockId,
   type,
   content,
+  contentTypeOptions = [],
+  formOptions = [],
 }: {
   pageId: string;
   slug: string;
   blockId: string;
   type: BlockType;
   content: Record<string, unknown>;
+  contentTypeOptions?: SelectOption[];
+  formOptions?: SelectOption[];
 }) {
   const action = updateBlockContent.bind(null, pageId, slug, blockId, type);
   const [state, formAction, pending] = useActionState(action, initialState);
+  const { toast } = useToast();
+  const notified = useRef<BlockFormState | null>(null);
+
+  useEffect(() => {
+    if (state === notified.current) return;
+    notified.current = state;
+    if (state.success) {
+      toast({ variant: "success", title: "Bloque guardado" });
+    } else if (state.error) {
+      toast({ variant: "danger", title: "No se pudo guardar", description: state.error });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   const str = (key: string) => (typeof content[key] === "string" ? (content[key] as string) : "");
   const num = (key: string, fallback: number) =>
     typeof content[key] === "number" ? (content[key] as number) : fallback;
@@ -212,12 +233,69 @@ export function BlockEditorForm({
         </>
       )}
 
-      {state.error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {state.error}
-        </p>
-      ) : null}
-      {state.success ? <p className="text-sm text-brand-600">Guardado.</p> : null}
+      {type === "content_list" && (
+        <>
+          <AdminField label="Título (opcional)" htmlFor={`${blockId}-title`}>
+            <AdminInput id={`${blockId}-title`} name="title" defaultValue={str("title")} />
+          </AdminField>
+          <AdminField label="Descripción (opcional)" htmlFor={`${blockId}-description`}>
+            <AdminTextarea id={`${blockId}-description`} name="description" rows={2} defaultValue={str("description")} />
+          </AdminField>
+          <AdminField label="Tipo de contenido" htmlFor={`${blockId}-contentTypeId`}>
+            <select
+              id={`${blockId}-contentTypeId`}
+              name="contentTypeId"
+              defaultValue={str("contentTypeId")}
+              required
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+            >
+              <option value="">Elegí un tipo de contenido...</option>
+              {contentTypeOptions.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.name}
+                </option>
+              ))}
+            </select>
+          </AdminField>
+          {contentTypeOptions.length === 0 ? (
+            <p className="text-xs text-fg-muted">
+              Todavía no creaste ningún tipo de contenido. Andá a &quot;Tipos de contenido&quot; en el menú.
+            </p>
+          ) : null}
+        </>
+      )}
+
+      {type === "form" && (
+        <>
+          <AdminField label="Título (opcional)" htmlFor={`${blockId}-title`} hint="Si lo dejás vacío, usa el nombre del formulario.">
+            <AdminInput id={`${blockId}-title`} name="title" defaultValue={str("title")} />
+          </AdminField>
+          <AdminField label="Descripción (opcional)" htmlFor={`${blockId}-description`}>
+            <AdminTextarea id={`${blockId}-description`} name="description" rows={2} defaultValue={str("description")} />
+          </AdminField>
+          <AdminField label="Formulario" htmlFor={`${blockId}-formId`}>
+            <select
+              id={`${blockId}-formId`}
+              name="formId"
+              defaultValue={str("formId")}
+              required
+              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm"
+            >
+              <option value="">Elegí un formulario...</option>
+              {formOptions.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.name}
+                </option>
+              ))}
+            </select>
+          </AdminField>
+          {formOptions.length === 0 ? (
+            <p className="text-xs text-fg-muted">
+              Todavía no creaste ningún formulario. Andá a &quot;Formularios&quot; en el menú.
+            </p>
+          ) : null}
+        </>
+      )}
 
       <AdminButton type="submit" variant="secondary" disabled={pending}>
         {pending ? "Guardando..." : "Guardar bloque"}

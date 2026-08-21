@@ -8,6 +8,62 @@
       "when": 1787144350166,
       "tag": "0000_reflective_lord_tyger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787161477496,
+      "tag": "0001_add_team_whatsapp",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787165633238,
+      "tag": "0002_add_content_types_and_forms",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787167850537,
+      "tag": "0003_add_participation_form_link",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787179467107,
+      "tag": "0004_add_form_submission_read_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787313700659,
+      "tag": "0005_add_brand_theme_toggle",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787329894031,
+      "tag": "0006_add_brand_theme_designer",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787329903518,
+      "tag": "0007_drop_brand_theme_enabled",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787338604997,
+      "tag": "0008_add_theme_design_extras",
+      "breakpoints": true
     }
   ]
 }

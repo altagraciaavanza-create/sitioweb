@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { AdminField, AdminInput, AdminTextarea, AdminButton } from "@/components/admin/admin-ui";
+import { useToast } from "@/components/ui/Toast";
 import type { EventFormState } from "./actions";
 
 type Event = {
@@ -25,11 +26,28 @@ function toLocalDatetimeInput(date: Date | string) {
 export function EventForm({
   action,
   event,
+  onSuccess,
 }: {
   action: (state: EventFormState, formData: FormData) => Promise<EventFormState>;
   event?: Event;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const { toast } = useToast();
+  const notified = useRef<EventFormState | null>(null);
+
+  useEffect(() => {
+    if (state === notified.current) return;
+    notified.current = state;
+
+    if (state.success) {
+      toast({ variant: "success", title: event?.id ? "Evento actualizado" : "Evento creado" });
+      onSuccess?.();
+    } else if (state.error) {
+      toast({ variant: "danger", title: "No se pudo guardar", description: state.error });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-5">
@@ -75,12 +93,6 @@ export function EventForm({
           Publicado
         </label>
       </div>
-
-      {state.error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {state.error}
-        </p>
-      ) : null}
 
       <AdminButton type="submit" disabled={pending}>
         {pending ? "Guardando..." : "Guardar"}

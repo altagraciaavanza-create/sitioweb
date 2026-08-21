@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { AdminField, AdminInput, AdminTextarea, AdminButton } from "@/components/admin/admin-ui";
+import { useToast } from "@/components/ui/Toast";
 import type { PostFormState } from "./actions";
 
 const categories = [
@@ -29,14 +30,31 @@ type Post = {
 export function PostForm({
   action,
   post,
+  onSuccess,
 }: {
   action: (state: PostFormState, formData: FormData) => Promise<PostFormState>;
   post?: Post;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const { toast } = useToast();
+  const notified = useRef<PostFormState | null>(null);
   const publishedAtValue = post?.publishedAt
     ? new Date(post.publishedAt).toISOString().slice(0, 10)
     : "";
+
+  useEffect(() => {
+    if (state === notified.current) return;
+    notified.current = state;
+
+    if (state.success) {
+      toast({ variant: "success", title: post?.id ? "Publicación actualizada" : "Publicación creada" });
+      onSuccess?.();
+    } else if (state.error) {
+      toast({ variant: "danger", title: "No se pudo guardar", description: state.error });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-5">
@@ -94,12 +112,6 @@ export function PostForm({
       >
         <AdminInput id="publishedAt" name="publishedAt" type="date" defaultValue={publishedAtValue} />
       </AdminField>
-
-      {state.error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {state.error}
-        </p>
-      ) : null}
 
       <AdminButton type="submit" disabled={pending}>
         {pending ? "Guardando..." : "Guardar"}

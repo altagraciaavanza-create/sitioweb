@@ -1,5 +1,6 @@
 import { Section } from "@/components/ui/Section";
 import { TopicCard } from "@/components/ui/TopicCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { getPublishedTopics } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -22,11 +23,20 @@ export default async function IdeasPage() {
           Nuestra agenda de propuestas, organizada por eje temático.
         </p>
       </div>
-      <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {topics.map((topic) => (
-          <TopicCard key={topic.slug} topic={topic} />
-        ))}
-      </div>
+      {topics.length === 0 ? (
+        <div className="mt-12">
+          <EmptyState
+            title="Todavía no hay ideas publicadas"
+            description="Pronto vamos a sumar acá los ejes temáticos y propuestas del espacio."
+          />
+        </div>
+      ) : (
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {topics.map((topic) => (
+            <TopicCard key={topic.slug} topic={topic} />
+          ))}
+        </div>
+      )}
     </Section>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { AdminField, AdminInput, AdminTextarea, AdminButton } from "@/components/admin/admin-ui";
+import { useToast } from "@/components/ui/Toast";
 import type { TeamFormState } from "./actions";
 
 type Member = {
@@ -10,6 +11,7 @@ type Member = {
   role?: string | null;
   activity?: string | null;
   photoUrl?: string | null;
+  whatsappNumber?: string | null;
   whyParticipate?: string | null;
   order: number;
   published: boolean;
@@ -18,11 +20,28 @@ type Member = {
 export function TeamMemberForm({
   action,
   member,
+  onSuccess,
 }: {
   action: (state: TeamFormState, formData: FormData) => Promise<TeamFormState>;
   member?: Member;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const { toast } = useToast();
+  const notified = useRef<TeamFormState | null>(null);
+
+  useEffect(() => {
+    if (state === notified.current) return;
+    notified.current = state;
+
+    if (state.success) {
+      toast({ variant: "success", title: member?.id ? "Integrante actualizado" : "Integrante creado" });
+      onSuccess?.();
+    } else if (state.error) {
+      toast({ variant: "danger", title: "No se pudo guardar", description: state.error });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-5">
@@ -36,6 +55,40 @@ export function TeamMemberForm({
 
       <AdminField label="Actividad / profesión (opcional)" htmlFor="activity">
         <AdminInput id="activity" name="activity" defaultValue={member?.activity ?? ""} />
+      </AdminField>
+
+      <AdminField
+        label="WhatsApp (opcional)"
+        htmlFor="whatsappNumber"
+        hint="Con código de país, ej: 5493547000000. Se muestra como un botón para escribirle directo."
+      >
+        <AdminInput
+          id="whatsappNumber"
+          name="whatsappNumber"
+          defaultValue={member?.whatsappNumber ?? ""}
+        />
+      </AdminField>
+
+      <AdminField
+        label="Foto (opcional)"
+        htmlFor="photo"
+        hint="Subí una imagen, o pegá una URL abajo si ya tenés una alojada en otro lado. Si subís un archivo, tiene prioridad sobre la URL."
+      >
+        <input
+          id="photo"
+          name="photo"
+          type="file"
+          accept="image/*"
+          className="block w-full text-sm text-fg-muted file:mr-3 file:rounded-md file:border-0 file:bg-bg-subtle file:px-3 file:py-2 file:text-sm file:font-medium file:text-fg hover:file:bg-border"
+        />
+        {member?.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={member.photoUrl}
+            alt=""
+            className="mt-3 h-16 w-16 rounded-full object-cover"
+          />
+        ) : null}
       </AdminField>
 
       <AdminField label="URL de foto (opcional)" htmlFor="photoUrl">
@@ -67,12 +120,6 @@ export function TeamMemberForm({
           Publicado (visible en el sitio)
         </label>
       </div>
-
-      {state.error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {state.error}
-        </p>
-      ) : null}
 
       <AdminButton type="submit" disabled={pending}>
         {pending ? "Guardando..." : "Guardar"}

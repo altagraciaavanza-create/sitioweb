@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { AdminField, AdminInput, AdminTextarea, AdminButton } from "@/components/admin/admin-ui";
+import { useToast } from "@/components/ui/Toast";
 import type { TopicFormState } from "./actions";
 
 type Topic = {
@@ -20,11 +21,28 @@ type Topic = {
 export function TopicForm({
   action,
   topic,
+  onSuccess,
 }: {
   action: (state: TopicFormState, formData: FormData) => Promise<TopicFormState>;
   topic?: Topic;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const { toast } = useToast();
+  const notified = useRef<TopicFormState | null>(null);
+
+  useEffect(() => {
+    if (state === notified.current) return;
+    notified.current = state;
+
+    if (state.success) {
+      toast({ variant: "success", title: topic?.id ? "Eje actualizado" : "Eje creado" });
+      onSuccess?.();
+    } else if (state.error) {
+      toast({ variant: "danger", title: "No se pudo guardar", description: state.error });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-5">
@@ -77,12 +95,6 @@ export function TopicForm({
           Publicado
         </label>
       </div>
-
-      {state.error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {state.error}
-        </p>
-      ) : null}
 
       <AdminButton type="submit" disabled={pending}>
         {pending ? "Guardando..." : "Guardar"}

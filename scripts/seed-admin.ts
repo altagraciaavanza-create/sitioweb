@@ -10,12 +10,18 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 config(); // fallback: .env, sin pisar lo ya cargado
 
-import { eq } from "drizzle-orm";
-import { db } from "../src/db";
-import { adminUsers } from "../src/db/schema";
-import { hashPassword } from "../src/lib/password";
-
+// Import dinámico A PROPÓSITO: un "import" estático de ../src/db se
+// resuelve (require) antes de que corran las líneas de arriba —tsx/esbuild
+// mueven los imports estáticos al principio del archivo—, así que
+// DATABASE_URL todavía no existiría cuando se arma la conexión. Con
+// import() dinámico, en cambio, se ejecuta en el orden real del código,
+// después de cargar .env.local.
 async function main() {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("../src/db");
+  const { adminUsers } = await import("../src/db/schema");
+  const { hashPassword } = await import("../src/lib/password");
+
   const [username, password] = process.argv.slice(2);
 
   if (!username || !password) {

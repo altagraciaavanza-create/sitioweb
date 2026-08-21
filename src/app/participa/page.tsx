@@ -1,7 +1,8 @@
 import { Section } from "@/components/ui/Section";
-import { Card } from "@/components/ui/Card";
+import { ParticipationCard } from "@/components/forms/ParticipationCard";
 import { getPublishedParticipationOptions } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
+import type { FieldDef } from "@/db/fields";
 
 export const metadata = buildMetadata({
   path: "/participa",
@@ -24,14 +25,23 @@ export default async function ParticipaPage() {
         </p>
       </div>
       <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {options.map((option, index) => (
-          <Card key={"slug" in option ? option.slug : index} className="h-full">
-            <h2 className="text-base font-semibold text-fg">{option.title}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-fg-muted">
-              {option.description}
-            </p>
-          </Card>
-        ))}
+        {options.map((option, index) => {
+          const key = "slug" in option ? option.slug : "id" in option ? option.id : index;
+          const form =
+            "formId" in option && option.formId
+              ? {
+                  id: option.formId,
+                  name: option.formName ?? option.title,
+                  description: option.formDescription,
+                  fields: (option.formFields ?? []) as FieldDef[],
+                  successMessage: option.formSuccessMessage ?? "¡Gracias! Recibimos tu envío.",
+                }
+              : null;
+
+          return (
+            <ParticipationCard key={key} title={option.title} description={option.description} form={form} />
+          );
+        })}
       </div>
     </Section>
   );

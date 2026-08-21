@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { eq, asc } from "drizzle-orm";
 import { db } from "@/db";
-import { pages, pageBlocks } from "@/db/schema";
+import { pages, pageBlocks, contentTypes, forms } from "@/db/schema";
 import { AdminPageHeader, AdminCard } from "@/components/admin/admin-ui";
 import { PageMetaForm } from "../PageMetaForm";
 import { AddBlockForm } from "../AddBlockForm";
@@ -17,6 +17,13 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
     .from(pageBlocks)
     .where(eq(pageBlocks.pageId, id))
     .orderBy(asc(pageBlocks.order));
+
+  // Para los bloques "Lista de contenido" y "Formulario", que referencian
+  // un tipo de contenido / formulario por id.
+  const [contentTypeOptions, formOptions] = await Promise.all([
+    db.select({ id: contentTypes.id, name: contentTypes.namePlural }).from(contentTypes),
+    db.select({ id: forms.id, name: forms.name }).from(forms),
+  ]);
 
   return (
     <div>
@@ -38,6 +45,8 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
           type: b.type,
           content: b.content as Record<string, unknown>,
         }))}
+        contentTypeOptions={contentTypeOptions}
+        formOptions={formOptions}
       />
 
       <div className="mt-6">

@@ -4,6 +4,7 @@ import {
   text,
   timestamp,
   integer,
+  real,
   boolean,
   jsonb,
   pgEnum,
@@ -49,6 +50,41 @@ export const siteSettings = pgTable("site_settings", {
   tiktokUrl: text("tiktok_url"),
   youtubeUrl: text("youtube_url"),
   ogImageUrl: text("og_image_url"),
+  // Qué perfil de identidad visual (de "brand_themes") está aplicado al
+  // sitio público en este momento. NULL = diseño original (el de siempre).
+  // El panel /admin nunca usa esto, sea cual sea el valor.
+  activeBrandThemeId: uuid("active_brand_theme_id").references(() => brandThemes.id, {
+    onDelete: "set null",
+  }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Diseñador de identidad visual: perfiles de colores/tipografía que se
+// pueden guardar, editar y aplicar (uno a la vez) al sitio público desde
+// /admin/identidad. Ver src/db/theme.ts para la forma exacta de `colors`.
+// ---------------------------------------------------------------------------
+
+export const brandThemes = pgTable("brand_themes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  colors: jsonb("colors").notNull(),
+  fontFamily: text("font_family").notNull().default("inter"),
+  // Forma de bordes ("square" | "soft" | "rounded" | "pill") y estilo de
+  // sombras ("flat" | "subtle" | "elevated"): cada valor mapea a un set de
+  // tokens --radius-*/--shadow-* ya existentes (ver THEME_SHAPE_PRESETS y
+  // THEME_SHADOW_PRESETS en src/db/theme.ts).
+  shape: text("shape").notNull().default("soft"),
+  shadowStyle: text("shadow_style").notNull().default("subtle"),
+  // Multiplicador de escala tipográfica (1 = tamaños actuales del sitio) y
+  // unidad base de espaciado en rem (0.25 = la de Tailwind por defecto):
+  // ambos se aplican sobre TODO el sitio de una sola vez, sin tocar
+  // componente por componente (ver themeToCssVars).
+  typeScale: real("type_scale").notNull().default(1),
+  density: real("density").notNull().default(0.25),
+  logoUrl: text("logo_url"),
+  headerDisplay: text("header_display").notNull().default("name"), // "name" | "logo" | "both"
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -110,6 +146,7 @@ export const teamMembers = pgTable("team_members", {
   role: text("role"),
   activity: text("activity"),
   photoUrl: text("photo_url"),
+  whatsappNumber: text("whatsapp_number"),
   whyParticipate: text("why_participate"),
   order: integer("order").notNull().default(0),
   published: boolean("published").notNull().default(true),
@@ -185,6 +222,10 @@ export const participationOptions = pgTable("participation_options", {
   description: text("description").notNull(),
   order: integer("order").notNull().default(0),
   published: boolean("published").notNull().default(true),
+  // Opcional: al hacer clic en la tarjeta, abre este formulario (de
+  // /admin/forms). Si no se elige ninguno, la tarjeta queda como texto sin
+  // link, igual que antes de agregar esta funcionalidad.
+  formId: uuid("form_id").references(() => forms.id, { onDelete: "set null" }),
 });
 
 // ---------------------------------------------------------------------------
@@ -225,5 +266,61 @@ export const contactSubmissions = pgTable("contact_submissions", {
   email: text("email").notNull(),
   message: text("message").notNull(),
   interest: text("interest"), // opción elegida en /participa, si aplica
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Tipos de contenido genéricos (verticales creadas desde el panel, sin
+// migraciones): cada tipo define sus propios campos (ver src/db/fields.ts),
+// y sus entradas guardan los valores como JSON en `data`.
+// ---------------------------------------------------------------------------
+
+export const contentTypes = pgTable("content_types", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(), // singular, ej: "Nota de prensa"
+  namePlural: text("name_plural").notNull(), // ej: "Prensa"
+  description: text("description"),
+  fields: jsonb("fields").notNull().default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const contentEntries = pgTable("content_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  contentTypeId: uuid("content_type_id")
+    .notNull()
+    .references(() => contentTypes.id, { onDelete: "cascade" }),
+  data: jsonb("data").notNull().default({}),
+  order: integer("order").notNull().default(0),
+  published: boolean("published").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Formularios genéricos (capturan envíos de vecinos, sin migraciones): cada
+// formulario define sus propios campos y cada envío guarda los valores como
+// JSON en `data`.
+// ---------------------------------------------------------------------------
+
+export const forms = pgTable("forms", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  fields: jsonb("fields").notNull().default([]),
+  successMessage: text("success_message").notNull().default("¡Gracias! Recibimos tu envío."),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const formSubmissions = pgTable("form_submissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  formId: uuid("form_id")
+    .notNull()
+    .references(() => forms.id, { onDelete: "cascade" }),
+  data: jsonb("data").notNull().default({}),
+  readAt: timestamp("read_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -2,7 +2,6 @@
 
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db, isDbConfigured } from "@/db";
 import { posts, postCategoryEnum } from "@/db/schema";
@@ -21,7 +20,7 @@ const postSchema = z.object({
   publishedAt: z.string().optional(),
 });
 
-export type PostFormState = { error?: string };
+export type PostFormState = { error?: string; success?: boolean };
 
 function requireDb() {
   if (!isDbConfigured) {
@@ -68,7 +67,7 @@ export async function createPost(
 
   revalidatePath("/actualidad");
   revalidatePath("/admin/posts");
-  redirect("/admin/posts");
+  return { success: true };
 }
 
 export async function updatePost(
@@ -99,7 +98,7 @@ export async function updatePost(
   revalidatePath("/actualidad");
   revalidatePath(`/actualidad/${parsed.data.slug}`);
   revalidatePath("/admin/posts");
-  redirect("/admin/posts");
+  return { success: true };
 }
 
 export async function deletePost(id: string) {

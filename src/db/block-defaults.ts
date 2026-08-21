@@ -43,4 +43,14 @@ export const blockDefaults: Record<BlockType, Record<string, unknown>> = {
     title: "Próximamente",
     description: "",
   },
+  content_list: {
+    title: "",
+    description: "",
+    contentTypeId: "",
+  },
+  form: {
+    title: "",
+    description: "",
+    formId: "",
+  },
 };

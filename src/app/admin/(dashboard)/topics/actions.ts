@@ -2,7 +2,6 @@
 
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db, isDbConfigured } from "@/db";
 import { topics } from "@/db/schema";
@@ -22,7 +21,7 @@ const topicSchema = z.object({
   published: z.coerce.boolean().default(true),
 });
 
-export type TopicFormState = { error?: string };
+export type TopicFormState = { error?: string; success?: boolean };
 
 function requireDb() {
   if (!isDbConfigured) {
@@ -65,7 +64,7 @@ export async function createTopic(
 
   revalidatePath("/ideas");
   revalidatePath("/admin/topics");
-  redirect("/admin/topics");
+  return { success: true };
 }
 
 export async function updateTopic(
@@ -86,7 +85,7 @@ export async function updateTopic(
   revalidatePath("/ideas");
   revalidatePath(`/ideas/${parsed.data.slug}`);
   revalidatePath("/admin/topics");
-  redirect("/admin/topics");
+  return { success: true };
 }
 
 export async function deleteTopic(id: string) {

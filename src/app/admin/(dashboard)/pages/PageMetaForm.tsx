@@ -1,6 +1,8 @@
 "use client";
 
+import { useTransition } from "react";
 import { AdminField, AdminInput, AdminButton } from "@/components/admin/admin-ui";
+import { useToast } from "@/components/ui/Toast";
 import { updatePageMeta, togglePageStatus } from "./actions";
 
 type Page = {
@@ -12,9 +14,33 @@ type Page = {
 };
 
 export function PageMetaForm({ page }: { page: Page }) {
+  const [savingMeta, startSavingMeta] = useTransition();
+  const [togglingStatus, startTogglingStatus] = useTransition();
+  const { toast } = useToast();
+
+  function handleMetaSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startSavingMeta(async () => {
+      await updatePageMeta(page.id, formData);
+      toast({ variant: "success", title: "Datos guardados" });
+    });
+  }
+
+  function handleToggleStatus() {
+    const nextStatus = page.status === "published" ? "draft" : "published";
+    startTogglingStatus(async () => {
+      await togglePageStatus(page.id, page.slug, nextStatus);
+      toast({
+        variant: "success",
+        title: nextStatus === "published" ? "Página publicada" : "Página pasada a borrador",
+      });
+    });
+  }
+
   return (
     <div className="space-y-6">
-      <form action={updatePageMeta.bind(null, page.id)} className="flex flex-wrap items-end gap-4">
+      <form onSubmit={handleMetaSubmit} className="flex flex-wrap items-end gap-4">
         <AdminField label="Título" htmlFor="title">
           <AdminInput id="title" name="title" required defaultValue={page.title} className="w-64" />
         </AdminField>
@@ -29,23 +55,23 @@ export function PageMetaForm({ page }: { page: Page }) {
             className="w-72"
           />
         </AdminField>
-        <AdminButton type="submit" variant="secondary">
-          Guardar datos
+        <AdminButton type="submit" variant="secondary" disabled={savingMeta}>
+          {savingMeta ? "Guardando..." : "Guardar datos"}
         </AdminButton>
       </form>
 
-      <form
-        action={togglePageStatus.bind(
-          null,
-          page.id,
-          page.slug,
-          page.status === "published" ? "draft" : "published"
-        )}
+      <AdminButton
+        type="button"
+        onClick={handleToggleStatus}
+        disabled={togglingStatus}
+        variant={page.status === "published" ? "secondary" : "primary"}
       >
-        <AdminButton type="submit" variant={page.status === "published" ? "secondary" : "primary"}>
-          {page.status === "published" ? "Pasar a borrador" : "Publicar página"}
-        </AdminButton>
-      </form>
+        {togglingStatus
+          ? "Guardando..."
+          : page.status === "published"
+            ? "Pasar a borrador"
+            : "Publicar página"}
+      </AdminButton>
     </div>
   );
 }

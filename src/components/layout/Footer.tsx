@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { siteConfig, getWhatsappLink } from "@/data/site";
+import { siteConfig, getWhatsappLink, formatWhatsappDisplay } from "@/data/site";
 import { getNavItems, getSiteSettings } from "@/lib/content";
 
 export async function Footer() {
@@ -14,9 +14,14 @@ export async function Footer() {
   const whatsappNumber = settings?.whatsappNumber ?? siteConfig.contact.whatsapp.phoneNumber;
   const whatsappMessage =
     settings?.whatsappMessage ?? siteConfig.contact.whatsapp.defaultMessage;
-  const whatsappDisplay = siteConfig.contact.whatsapp.displayNumber;
+  const whatsappDisplay = whatsappNumber
+    ? formatWhatsappDisplay(whatsappNumber)
+    : siteConfig.contact.whatsapp.displayNumber;
   const instagramUrl = settings?.instagramUrl ?? siteConfig.social.instagram;
   const facebookUrl = settings?.facebookUrl ?? siteConfig.social.facebook;
+  const twitterUrl = settings?.twitterUrl ?? siteConfig.social.twitter;
+  const tiktokUrl = settings?.tiktokUrl ?? siteConfig.social.tiktok;
+  const youtubeUrl = settings?.youtubeUrl ?? siteConfig.social.youtube;
 
   return (
     <footer className="border-t border-border bg-bg-subtle">
@@ -57,7 +62,7 @@ export async function Footer() {
             {whatsappNumber ? (
               <li>
                 <a
-                  href={getWhatsappLink(whatsappMessage ?? undefined)}
+                  href={getWhatsappLink(whatsappMessage ?? undefined, whatsappNumber ?? undefined)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-fg"
@@ -87,6 +92,42 @@ export async function Footer() {
                   className="hover:text-fg"
                 >
                   Facebook
+                </a>
+              </li>
+            ) : null}
+            {twitterUrl ? (
+              <li>
+                <a
+                  href={twitterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-fg"
+                >
+                  Twitter/X
+                </a>
+              </li>
+            ) : null}
+            {tiktokUrl ? (
+              <li>
+                <a
+                  href={tiktokUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-fg"
+                >
+                  TikTok
+                </a>
+              </li>
+            ) : null}
+            {youtubeUrl ? (
+              <li>
+                <a
+                  href={youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-fg"
+                >
+                  YouTube
                 </a>
               </li>
             ) : null}

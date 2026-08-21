@@ -44,10 +44,28 @@ export const siteConfig = {
 
 export type SiteConfig = typeof siteConfig;
 
-/** Helper para construir el link de WhatsApp con mensaje predefinido. */
-export function getWhatsappLink(message?: string) {
+/**
+ * Helper para construir el link de WhatsApp con mensaje predefinido.
+ *
+ * `phoneNumber` y `message` son opcionales para no romper usos existentes,
+ * pero siempre que haya un valor cargado en /admin/settings hay que
+ * pasarlo explícitamente: si no, este helper cae en el número estático de
+ * siteConfig y los cambios hechos en el panel no se reflejan en el sitio.
+ */
+export function getWhatsappLink(message?: string, phoneNumber?: string) {
   const text = encodeURIComponent(
     message ?? siteConfig.contact.whatsapp.defaultMessage
   );
-  return `https://wa.me/${siteConfig.contact.whatsapp.phoneNumber}?text=${text}`;
+  const phone = phoneNumber ?? siteConfig.contact.whatsapp.phoneNumber;
+  return `https://wa.me/${phone}?text=${text}`;
+}
+
+/** Formatea un número de WhatsApp en formato E.164 (549...) para mostrarlo legible. */
+export function formatWhatsappDisplay(phoneNumber: string) {
+  const digits = phoneNumber.replace(/\D/g, "");
+  // Formato esperado: 54 9 <área> <número>, ej: 5493547000000
+  const match = digits.match(/^54(9)?(\d{2,4})(\d+)$/);
+  if (!match) return `+${digits}`;
+  const [, nine, area, rest] = match;
+  return `+54 ${nine ?? ""}${nine ? " " : ""}${area} ${rest}`.replace(/\s+/g, " ").trim();
 }

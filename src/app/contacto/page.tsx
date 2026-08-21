@@ -1,7 +1,8 @@
 import { Section } from "@/components/ui/Section";
 import { ContactForm } from "@/components/forms/ContactForm";
-import { siteConfig, getWhatsappLink } from "@/data/site";
+import { siteConfig, getWhatsappLink, formatWhatsappDisplay } from "@/data/site";
 import { buildMetadata } from "@/lib/metadata";
+import { getSiteSettings } from "@/lib/content";
 
 export const metadata = buildMetadata({
   path: "/contacto",
@@ -9,7 +10,15 @@ export const metadata = buildMetadata({
   description: "Comunicate con Alta Gracia Avanza.",
 });
 
-export default function ContactoPage() {
+export default async function ContactoPage() {
+  const settings = await getSiteSettings();
+  const email = settings?.contactEmail ?? siteConfig.contact.email;
+  const whatsappNumber = settings?.whatsappNumber ?? siteConfig.contact.whatsapp.phoneNumber;
+  const whatsappMessage = settings?.whatsappMessage ?? siteConfig.contact.whatsapp.defaultMessage;
+  const whatsappDisplay = whatsappNumber
+    ? formatWhatsappDisplay(whatsappNumber)
+    : siteConfig.contact.whatsapp.displayNumber;
+
   return (
     <Section tone="default">
       <div className="mx-auto grid max-w-4xl gap-12 md:grid-cols-2">
@@ -22,23 +31,27 @@ export default function ContactoPage() {
           </p>
 
           <ul className="mt-8 space-y-3 text-sm text-fg-muted">
-            <li>
-              Email:{" "}
-              <a href={`mailto:${siteConfig.contact.email}`} className="text-brand-600 hover:underline">
-                {siteConfig.contact.email}
-              </a>
-            </li>
-            <li>
-              WhatsApp:{" "}
-              <a
-                href={getWhatsappLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand-600 hover:underline"
-              >
-                {siteConfig.contact.whatsapp.displayNumber}
-              </a>
-            </li>
+            {email ? (
+              <li>
+                Email:{" "}
+                <a href={`mailto:${email}`} className="text-brand-600 hover:underline">
+                  {email}
+                </a>
+              </li>
+            ) : null}
+            {whatsappNumber ? (
+              <li>
+                WhatsApp:{" "}
+                <a
+                  href={getWhatsappLink(whatsappMessage ?? undefined, whatsappNumber)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-600 hover:underline"
+                >
+                  {whatsappDisplay}
+                </a>
+              </li>
+            ) : null}
           </ul>
         </div>
 

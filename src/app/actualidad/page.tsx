@@ -1,5 +1,6 @@
 import { Section } from "@/components/ui/Section";
 import { ArticleCard } from "@/components/ui/ArticleCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { getPublishedPosts } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -22,11 +23,20 @@ export default async function ActualidadPage() {
           Reuniones, actividades y novedades del espacio.
         </p>
       </div>
-      <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => (
-          <ArticleCard key={post.slug} update={post} />
-        ))}
-      </div>
+      {posts.length === 0 ? (
+        <div className="mt-12">
+          <EmptyState
+            title="Todavía no hay novedades publicadas"
+            description="Pronto vamos a compartir acá reuniones, actividades y comunicados."
+          />
+        </div>
+      ) : (
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <ArticleCard key={post.slug} update={post} />
+          ))}
+        </div>
+      )}
     </Section>
   );
 }

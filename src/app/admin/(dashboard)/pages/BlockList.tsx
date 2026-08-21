@@ -28,18 +28,24 @@ type Block = {
   content: Record<string, unknown>;
 };
 
+type SelectOption = { id: string; name: string };
+
 function SortableBlock({
   block,
   pageId,
   slug,
   expanded,
   onToggle,
+  contentTypeOptions,
+  formOptions,
 }: {
   block: Block;
   pageId: string;
   slug: string;
   expanded: boolean;
   onToggle: () => void;
+  contentTypeOptions: SelectOption[];
+  formOptions: SelectOption[];
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
@@ -88,6 +94,8 @@ function SortableBlock({
             blockId={block.id}
             type={block.type as BlockType}
             content={block.content}
+            contentTypeOptions={contentTypeOptions}
+            formOptions={formOptions}
           />
         ) : null}
       </AdminCard>
@@ -99,10 +107,14 @@ export function BlockList({
   pageId,
   slug,
   blocks,
+  contentTypeOptions,
+  formOptions,
 }: {
   pageId: string;
   slug: string;
   blocks: Block[];
+  contentTypeOptions: SelectOption[];
+  formOptions: SelectOption[];
 }) {
   const [items, setItems] = useState(blocks);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -149,6 +161,8 @@ export function BlockList({
               slug={slug}
               expanded={expandedId === block.id}
               onToggle={() => setExpandedId(expandedId === block.id ? null : block.id)}
+              contentTypeOptions={contentTypeOptions}
+              formOptions={formOptions}
             />
           ))}
         </div>

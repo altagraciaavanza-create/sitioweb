@@ -8,6 +8,8 @@ import { CtaBlock } from "./CtaBlock";
 import { TeamGridBlock } from "./TeamGridBlock";
 import { ImageBlock } from "./ImageBlock";
 import { EmptyStateBlock } from "./EmptyStateBlock";
+import { ContentListBlock } from "./ContentListBlock";
+import { FormBlock } from "./FormBlock";
 import type { BlockType, PageBlockData } from "@/db/blocks";
 
 /**
@@ -15,7 +17,7 @@ import type { BlockType, PageBlockData } from "@/db/blocks";
  * entrada en src/db/blocks.ts. Algunos son async Server Components (los que
  * consultan datos, como TopicGridBlock).
  */
-export const blockRegistry: Record<BlockType, ComponentType<{ content: never }>> = {
+export const blockRegistry: Record<BlockType, ComponentType<{ id: string; content: never }>> = {
   hero: HeroBlock,
   rich_text: RichTextBlock,
   principles: PrinciplesBlock,
@@ -25,10 +27,12 @@ export const blockRegistry: Record<BlockType, ComponentType<{ content: never }>>
   team_grid: TeamGridBlock,
   image: ImageBlock,
   empty_state: EmptyStateBlock,
-} as unknown as Record<BlockType, ComponentType<{ content: never }>>;
+  content_list: ContentListBlock,
+  form: FormBlock,
+} as unknown as Record<BlockType, ComponentType<{ id: string; content: never }>>;
 
 export function renderBlock(block: PageBlockData, key: string | number) {
-  const Component = blockRegistry[block.type] as ComponentType<{ content: unknown }>;
+  const Component = blockRegistry[block.type] as ComponentType<{ id: string; content: unknown }>;
   if (!Component) return null;
-  return <Component key={key} content={block.content} />;
+  return <Component key={key} id={block.id} content={block.content} />;
 }

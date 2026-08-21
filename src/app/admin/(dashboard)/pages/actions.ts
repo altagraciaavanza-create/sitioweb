@@ -154,7 +154,13 @@ export async function updateBlockContent(
   const raw = buildContentFromForm(type, formData);
 
   try {
-    const content = validateBlockContent(type, raw);
+    // Mergea sobre el content existente (no lo reemplaza entero): así, un
+    // color de texto puesto desde el modo edición en vivo del sitio público
+    // (ver src/components/editing/) no se pierde solo por guardar este
+    // formulario clásico, que todavía no tiene campos para tocar colores.
+    const [existing] = await db.select().from(pageBlocks).where(eq(pageBlocks.id, blockId));
+    const merged = { ...(existing?.content as Record<string, unknown> | undefined), ...raw };
+    const content = validateBlockContent(type, merged);
     await db
       .update(pageBlocks)
       .set({ content, updatedAt: new Date() })
@@ -242,6 +248,18 @@ function buildContentFromForm(type: BlockType, formData: FormData): Record<strin
       return {
         title: get("title") ?? "",
         description: get("description"),
+      };
+    case "content_list":
+      return {
+        title: get("title"),
+        description: get("description"),
+        contentTypeId: get("contentTypeId") ?? "",
+      };
+    case "form":
+      return {
+        title: get("title"),
+        description: get("description"),
+        formId: get("formId") ?? "",
       };
     default:
       return {};

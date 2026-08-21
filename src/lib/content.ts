@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { db, isDbConfigured } from "@/db";
 import {
@@ -10,7 +11,10 @@ import {
   topics,
   events,
   participationOptions,
+  forms,
+  brandThemes,
 } from "@/db/schema";
+import type { ThemeColors, ThemeFontFamily, ThemeDesign } from "@/db/theme";
 import type { PageBlockData } from "@/db/blocks";
 import { validateBlockContent, type BlockType } from "@/db/blocks";
 
@@ -34,7 +38,10 @@ import { participationOptions as staticParticipation } from "@/data/participatio
 // Configuración del sitio
 // ---------------------------------------------------------------------------
 
-export async function getSiteSettings() {
+// `cache()` memoiza esto por request: layout, Header y Footer piden la
+// configuración por separado, así se hace una sola consulta a la base en
+// vez de tres.
+export const getSiteSettings = cache(async function getSiteSettings() {
   if (!isDbConfigured) {
     return {
       name: siteConfig.name,
@@ -45,12 +52,57 @@ export async function getSiteSettings() {
       whatsappMessage: siteConfig.contact.whatsapp.defaultMessage,
       instagramUrl: siteConfig.social.instagram ?? null,
       facebookUrl: siteConfig.social.facebook ?? null,
+      twitterUrl: siteConfig.social.twitter ?? null,
+      tiktokUrl: siteConfig.social.tiktok ?? null,
+      youtubeUrl: siteConfig.social.youtube ?? null,
+      ogImageUrl: siteConfig.defaultMetadata.ogImage ?? null,
     };
   }
 
   const [settings] = await db.select().from(siteSettings).where(eq(siteSettings.id, 1));
   return settings ?? null;
-}
+});
+
+/**
+ * El perfil de identidad visual actualmente aplicado al sitio público (ver
+ * /admin/identidad), o null si no hay ninguno aplicado (diseño original).
+ */
+export const getActiveBrandTheme = cache(async function getActiveBrandTheme(): Promise<{
+  colors: ThemeColors;
+  fontFamily: ThemeFontFamily;
+  design: ThemeDesign;
+} | null> {
+  if (!isDbConfigured) return null;
+
+  const [row] = await db
+    .select({
+      colors: brandThemes.colors,
+      fontFamily: brandThemes.fontFamily,
+      shape: brandThemes.shape,
+      shadowStyle: brandThemes.shadowStyle,
+      typeScale: brandThemes.typeScale,
+      density: brandThemes.density,
+      logoUrl: brandThemes.logoUrl,
+      headerDisplay: brandThemes.headerDisplay,
+    })
+    .from(siteSettings)
+    .innerJoin(brandThemes, eq(siteSettings.activeBrandThemeId, brandThemes.id))
+    .where(eq(siteSettings.id, 1));
+
+  if (!row) return null;
+  return {
+    colors: row.colors as ThemeColors,
+    fontFamily: row.fontFamily as ThemeFontFamily,
+    design: {
+      shape: row.shape as ThemeDesign["shape"],
+      shadowStyle: row.shadowStyle as ThemeDesign["shadowStyle"],
+      typeScale: row.typeScale,
+      density: row.density,
+      logoUrl: row.logoUrl,
+      headerDisplay: row.headerDisplay as ThemeDesign["headerDisplay"],
+    },
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Navegación
@@ -91,6 +143,7 @@ export async function getPublishedPageBySlug(slug: string) {
     .orderBy(asc(pageBlocks.order));
 
   const validatedBlocks: PageBlockData[] = blocks.map((block) => ({
+    id: block.id,
     type: block.type as BlockType,
     content: validateBlockContent(block.type as BlockType, block.content),
   })) as PageBlockData[];
@@ -197,8 +250,21 @@ export async function getPublishedParticipationOptions() {
   if (!isDbConfigured) return staticParticipation;
 
   return db
-    .select()
+    .select({
+      id: participationOptions.id,
+      title: participationOptions.title,
+      description: participationOptions.description,
+      order: participationOptions.order,
+      published: participationOptions.published,
+      formId: participationOptions.formId,
+      formSlug: forms.slug,
+      formName: forms.name,
+      formDescription: forms.description,
+      formFields: forms.fields,
+      formSuccessMessage: forms.successMessage,
+    })
     .from(participationOptions)
+    .leftJoin(forms, eq(participationOptions.formId, forms.id))
     .where(eq(participationOptions.published, true))
     .orderBy(asc(participationOptions.order));
 }
