@@ -5,6 +5,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { themeToCssVars, type ThemeColors, type ThemeFontFamily, type ThemeDesign } from "@/db/theme";
 import { EditModeProvider } from "@/components/editing/EditModeContext";
 import { EditModeToggle } from "@/components/editing/EditModeToggle";
+import { StyleEditorProvider } from "@/components/editing/StyleEditorContext";
+import { ContainerStylePanel } from "@/components/editing/ContainerStylePanel";
 
 /**
  * El panel /admin tiene su propio layout de pantalla completa (sidebar +
@@ -58,12 +60,15 @@ export function SiteChrome({
     // verse con los valores ya sobreescritos) y flex-1 flex-col (para
     // seguir ocupando el mismo lugar que antes ocupaba <body> directamente).
     <EditModeProvider isAdmin={isAdminUser}>
-      <div className="flex flex-1 flex-col bg-bg text-fg" style={themeStyle}>
-        {header}
-        <main className="flex-1">{children}</main>
-        {footer}
-      </div>
-      <EditModeToggle />
+      <StyleEditorProvider>
+        <div className="flex flex-1 flex-col bg-bg text-fg" style={themeStyle}>
+          {header}
+          <main className="flex-1">{children}</main>
+          {footer}
+        </div>
+        <EditModeToggle />
+        <ContainerStylePanel />
+      </StyleEditorProvider>
     </EditModeProvider>
   );
 }

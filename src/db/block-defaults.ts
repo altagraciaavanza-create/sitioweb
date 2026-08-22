@@ -35,6 +35,14 @@ export const blockDefaults: Record<BlockType, Record<string, unknown>> = {
     title: "Equipo",
     description: "",
   },
+  info_cards: {
+    title: "",
+    items: [{ title: "Ejemplo", description: "Descripción del ítem." }],
+  },
+  affirmations: {
+    title: "",
+    items: [{ text: "Una afirmación destacada." }],
+  },
   image: {
     imageUrl: "",
     alt: "",

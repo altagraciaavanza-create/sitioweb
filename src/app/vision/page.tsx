@@ -1,4 +1,6 @@
 import { Section } from "@/components/ui/Section";
+import { PageRenderer } from "@/components/blocks/PageRenderer";
+import { getPublishedPageBySlug } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata = buildMetadata({
@@ -14,7 +16,12 @@ const affirmations = [
   "Una Alta Gracia que genere oportunidades para quienes quieren construir su futuro en la ciudad.",
 ];
 
-export default function VisionPage() {
+export default async function VisionPage() {
+  const page = await getPublishedPageBySlug("vision");
+  if (page) {
+    return <PageRenderer pageId={page.id} blocks={page.blocks} />;
+  }
+
   return (
     <Section tone="default">
       <div className="mx-auto max-w-3xl">

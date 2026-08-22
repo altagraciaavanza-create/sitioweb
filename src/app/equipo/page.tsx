@@ -1,7 +1,8 @@
 import { Section } from "@/components/ui/Section";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { getPublishedTeamMembers } from "@/lib/content";
+import { PageRenderer } from "@/components/blocks/PageRenderer";
+import { getPublishedTeamMembers, getPublishedPageBySlug } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
 import { buildWhatsappLink } from "@/lib/utils";
 
@@ -12,6 +13,11 @@ export const metadata = buildMetadata({
 });
 
 export default async function EquipoPage() {
+  const page = await getPublishedPageBySlug("equipo");
+  if (page) {
+    return <PageRenderer pageId={page.id} blocks={page.blocks} />;
+  }
+
   const members = await getPublishedTeamMembers();
 
   return (

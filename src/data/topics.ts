@@ -1,4 +1,7 @@
+import type { ContainerStyle } from "@/db/blocks";
+
 export type Topic = {
+  id?: string;
   slug: string;
   title: string;
   summary: string;
@@ -6,6 +9,8 @@ export type Topic = {
   diagnosis?: string | null;
   proposal?: string | null;
   expectedImpact?: string | null;
+  /** Override de estilo de tarjeta, guardado desde el modo edición en vivo. */
+  styleOverrides?: ContainerStyle | null;
 };
 
 /** Ejes temáticos de la agenda de Alta Gracia Avanza. */

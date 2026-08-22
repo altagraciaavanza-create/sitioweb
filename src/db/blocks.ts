@@ -24,22 +24,56 @@ const optionalHexColor = z
   .regex(/^#[0-9a-fA-F]{6}$/, "Tiene que ser un color hexadecimal, ej: #1F7A5C")
   .optional();
 
+/**
+ * Override de estilo "de contenedor" que se puede aplicar desde el modo
+ * edición en vivo sobre una sección completa o una tarjeta puntual (ver
+ * src/components/editing/ContainerStyleTrigger.tsx y ContainerStylePanel.tsx).
+ * Todos los campos son opcionales: ausente = usa el valor por defecto que ya
+ * trae el bloque/componente (heredado del tema o del tono de sección).
+ */
+export const containerStyleSchema = z.object({
+  background: optionalHexColor,
+  // Espaciado interno en px. En una sección se aplica solo arriba/abajo
+  // (el ancho ya lo maneja el Container); en una tarjeta se aplica en las
+  // cuatro direcciones.
+  padding: z.number().min(0).max(200).optional(),
+  // Solo tiene efecto visible en contenedores angostos (tarjetas) — una
+  // sección de ancho completo no se ve distinta con bordes redondeados.
+  radius: z.number().min(0).max(48).optional(),
+  // Ancho máximo en px — solo tiene sentido en tarjetas (una sección ya es
+  // de ancho completo por diseño). No es "tamaño libre" tipo canvas: el
+  // sitio sigue en flujo normal, esto solo acota cuánto puede crecer.
+  width: z.number().min(80).max(1200).optional(),
+  // "Posición" en un sitio de flujo normal (no canvas) se traduce en
+  // espaciado externo: empujar el contenedor más arriba/abajo respecto de
+  // sus vecinos, sin romper el resto del layout.
+  marginTop: z.number().min(-100).max(200).optional(),
+  marginBottom: z.number().min(-100).max(200).optional(),
+});
+export type ContainerStyle = z.infer<typeof containerStyleSchema>;
+
 export const heroBlockSchema = z.object({
   eyebrow: z.string().optional(),
   title: z.string().min(1, "El título es obligatorio"),
   description: z.string().optional(),
-  primaryCta: z.object({ label: z.string(), href: z.string() }).optional(),
-  secondaryCta: z.object({ label: z.string(), href: z.string() }).optional(),
+  primaryCta: z.object({ label: z.string(), href: z.string(), color: optionalHexColor }).optional(),
+  secondaryCta: z.object({ label: z.string(), href: z.string(), color: optionalHexColor }).optional(),
   titleColor: optionalHexColor,
   descriptionColor: optionalHexColor,
+  containerStyle: containerStyleSchema.optional(),
 });
 
 export const richTextBlockSchema = z.object({
   title: z.string().optional(),
   body: z.string().min(1, "El contenido es obligatorio"),
   align: z.enum(["left", "center"]).default("center"),
+  // Fondo de la sección: "default" = fondo de página, "subtle" = un tono
+  // más (ver Section.tsx). Antes esto no era configurable — el mockup de
+  // la landing alterna secciones claras/oscuras entre bloques.
+  tone: z.enum(["default", "subtle"]).default("default"),
   titleColor: optionalHexColor,
   bodyColor: optionalHexColor,
+  containerStyle: containerStyleSchema.optional(),
 });
 
 export const principlesBlockSchema = z.object({
@@ -49,15 +83,19 @@ export const principlesBlockSchema = z.object({
       z.object({
         title: z.string().min(1),
         description: z.string().min(1),
+        style: containerStyleSchema.optional(),
+        iconColor: optionalHexColor,
       })
     )
     .min(1),
+  containerStyle: containerStyleSchema.optional(),
 });
 
 export const topicGridBlockSchema = z.object({
   title: z.string().default("Agenda para Alta Gracia"),
   description: z.string().optional(),
   source: z.enum(["all_topics", "manual"]).default("all_topics"),
+  containerStyle: containerStyleSchema.optional(),
 });
 
 export const articleGridBlockSchema = z.object({
@@ -66,6 +104,7 @@ export const articleGridBlockSchema = z.object({
   limit: z.number().int().min(1).max(12).default(3),
   ctaLabel: z.string().optional(),
   ctaHref: z.string().optional(),
+  containerStyle: containerStyleSchema.optional(),
 });
 
 export const ctaBlockSchema = z.object({
@@ -74,13 +113,56 @@ export const ctaBlockSchema = z.object({
   description: z.string().optional(),
   ctaLabel: z.string().min(1),
   ctaHref: z.string().min(1),
+  // "solid" = fondo naranja de marca lleno (el llamado a la acción
+  // destacado del mockup); "plain" = fondo de página, solo el botón lleva
+  // color. Antes solo existía el equivalente a "solid".
+  style: z.enum(["solid", "plain"]).default("solid"),
   titleColor: optionalHexColor,
   descriptionColor: optionalHexColor,
+  buttonColor: optionalHexColor,
+  containerStyle: containerStyleSchema.optional(),
 });
 
 export const teamGridBlockSchema = z.object({
   title: z.string().default("Equipo"),
   description: z.string().optional(),
+  containerStyle: containerStyleSchema.optional(),
+});
+
+/**
+ * Grilla genérica de tarjetas chicas (título + texto), sin la numeración
+ * de sección de "Convicciones" — para bloques institucionales tipo
+ * "Por qué nacemos / Qué buscamos construir" (página Nosotros).
+ */
+export const infoCardsBlockSchema = z.object({
+  title: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        title: z.string().min(1),
+        description: z.string().min(1),
+        style: containerStyleSchema.optional(),
+      })
+    )
+    .min(1),
+  containerStyle: containerStyleSchema.optional(),
+});
+
+/**
+ * Lista de afirmaciones/frases destacadas (borde de color a la izquierda,
+ * sin tarjeta) — usado en la página Visión.
+ */
+export const affirmationsBlockSchema = z.object({
+  title: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        text: z.string().min(1),
+        style: containerStyleSchema.optional(),
+      })
+    )
+    .min(1),
+  containerStyle: containerStyleSchema.optional(),
 });
 
 export const imageBlockSchema = z.object({
@@ -114,6 +196,8 @@ export const blockRegistrySchema = {
   article_grid: { label: "Grilla de actualidad", schema: articleGridBlockSchema },
   cta: { label: "Llamado a la acción", schema: ctaBlockSchema },
   team_grid: { label: "Grilla de equipo", schema: teamGridBlockSchema },
+  info_cards: { label: "Grilla de tarjetas", schema: infoCardsBlockSchema },
+  affirmations: { label: "Lista de afirmaciones", schema: affirmationsBlockSchema },
   image: { label: "Imagen", schema: imageBlockSchema },
   empty_state: { label: "Estado vacío", schema: emptyStateBlockSchema },
   content_list: { label: "Lista de contenido", schema: contentListBlockSchema },
@@ -137,6 +221,8 @@ export type PageBlockData =
   | { id: string; type: "article_grid"; content: BlockContent<"article_grid"> }
   | { id: string; type: "cta"; content: BlockContent<"cta"> }
   | { id: string; type: "team_grid"; content: BlockContent<"team_grid"> }
+  | { id: string; type: "info_cards"; content: BlockContent<"info_cards"> }
+  | { id: string; type: "affirmations"; content: BlockContent<"affirmations"> }
   | { id: string; type: "image"; content: BlockContent<"image"> }
   | { id: string; type: "empty_state"; content: BlockContent<"empty_state"> }
   | { id: string; type: "content_list"; content: BlockContent<"content_list"> }

@@ -1,4 +1,6 @@
 import { Section } from "@/components/ui/Section";
+import { PageRenderer } from "@/components/blocks/PageRenderer";
+import { getPublishedPageBySlug } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata = buildMetadata({
@@ -7,7 +9,15 @@ export const metadata = buildMetadata({
   description: "Quiénes somos, por qué nace Alta Gracia Avanza y qué buscamos construir.",
 });
 
-export default function NosotrosPage() {
+export default async function NosotrosPage() {
+  // Igual que la home: si ya existe como página del page builder (ver
+  // scripts/seed-secondary-pages.ts), se renderiza editable en vivo; si no,
+  // cae al contenido estático de siempre.
+  const page = await getPublishedPageBySlug("nosotros");
+  if (page) {
+    return <PageRenderer pageId={page.id} blocks={page.blocks} />;
+  }
+
   return (
     <Section tone="default">
       <div className="mx-auto max-w-3xl">

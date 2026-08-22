@@ -3,8 +3,8 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db, isDbConfigured } from "@/db";
-import { pageBlocks, topics } from "@/db/schema";
-import { validateBlockContent, type BlockType } from "@/db/blocks";
+import { pageBlocks, topics, posts } from "@/db/schema";
+import { validateBlockContent, containerStyleSchema, type BlockType, type ContainerStyle } from "@/db/blocks";
 import { getSession } from "@/lib/auth";
 
 export type UpdateBlockFieldState = { error?: string; success?: boolean };
@@ -57,6 +57,56 @@ export async function updateBlockField(
   revalidatePath("/", "layout");
 
   return { success: true };
+}
+
+/**
+ * Guarda el override de estilo de contenedor (fondo/espaciado) de una
+ * sección — ver ContainerStyleTrigger.tsx. Es un caso particular de
+ * `updateBlockField` (containerStyle es un campo más del `content` del
+ * bloque), pero necesita ser una función propia: los bloques que usan el
+ * engranaje de estilo son Server Components, y un Server Component no
+ * puede pasarle a un Client Component una función armada al vuelo
+ * (`(style) => updateBlockField(id, {...})`) — solo puede pasar una
+ * referencia a una server action ya definida, con `.bind(null, blockId)`
+ * para fijar el id de antemano.
+ */
+export async function updateBlockContainerStyle(
+  blockId: string,
+  style: ContainerStyle
+): Promise<UpdateBlockFieldState> {
+  return updateBlockField(blockId, { containerStyle: style });
+}
+
+/**
+ * Guarda el color de UN elemento suelto dentro de un bloque (un botón, un
+ * ícono) cuando ese color vive en un campo simple del `content` — ej.
+ * `buttonColor` en el CTA. Igual que `updateBlockContainerStyle`, existe
+ * como función propia (en vez de un closure armado al vuelo) para poder
+ * pasarse con `.bind()` desde un Server Component a un Client Component
+ * (ver ElementColorTrigger.tsx y el bug de "Event handlers cannot be
+ * passed to Client Component props" documentado en el proyecto).
+ */
+export async function updateBlockColorField(
+  blockId: string,
+  field: string,
+  color: string | undefined
+): Promise<UpdateBlockFieldState> {
+  return updateBlockField(blockId, { [field]: color });
+}
+
+/**
+ * Igual que `updateBlockColorField`, pero para el color de un botón que
+ * vive DENTRO de un objeto anidado del content (`primaryCta`/`secondaryCta`
+ * del Hero) — hay que mandar el objeto completo, no solo el color.
+ */
+export async function updateHeroCtaColor(
+  blockId: string,
+  ctaKey: "primaryCta" | "secondaryCta",
+  currentCta: { label: string; href: string; color?: string } | undefined,
+  color: string | undefined
+): Promise<UpdateBlockFieldState> {
+  if (!currentCta) return { error: "No hay botón para editar." };
+  return updateBlockField(blockId, { [ctaKey]: { ...currentCta, color } });
 }
 
 export type ReorderState = { error?: string; success?: boolean };
@@ -114,6 +164,124 @@ export async function reorderTopicsPublic(orderedIds: string[]): Promise<Reorder
     )
   );
 
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+/**
+ * Edita el título o el resumen de UN eje temático puntual desde el modo
+ * edición en vivo (doble clic sobre la tarjeta, ver
+ * SortableTopicGrid.tsx). Los topics viven en su propia tabla, no en el
+ * `content` de un bloque, por eso no pasa por updateBlockField. Whitelist
+ * de campos a propósito: nunca se acepta una columna arbitraria.
+ */
+export async function updateTopicField(
+  topicId: string,
+  patch: { title?: string; summary?: string }
+): Promise<UpdateBlockFieldState> {
+  const session = await getSession();
+  if (!session) {
+    return { error: "Tu sesión expiró. Volvé a iniciar sesión en /admin." };
+  }
+  if (!isDbConfigured) {
+    return { error: "La base de datos no está configurada todavía (falta DATABASE_URL)." };
+  }
+
+  const safePatch: { title?: string; summary?: string } = {};
+  if (typeof patch.title === "string" && patch.title.trim()) safePatch.title = patch.title.trim();
+  if (typeof patch.summary === "string" && patch.summary.trim()) safePatch.summary = patch.summary.trim();
+  if (Object.keys(safePatch).length === 0) {
+    return { error: "El valor no puede quedar vacío." };
+  }
+
+  await db.update(topics).set(safePatch).where(eq(topics.id, topicId));
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+/**
+ * Igual que `updateTopicField` pero para una novedad puntual de
+ * Actualidad (tabla `posts`) — título o resumen.
+ */
+export async function updatePostField(
+  postId: string,
+  patch: { title?: string; excerpt?: string }
+): Promise<UpdateBlockFieldState> {
+  const session = await getSession();
+  if (!session) {
+    return { error: "Tu sesión expiró. Volvé a iniciar sesión en /admin." };
+  }
+  if (!isDbConfigured) {
+    return { error: "La base de datos no está configurada todavía (falta DATABASE_URL)." };
+  }
+
+  const safePatch: { title?: string; excerpt?: string } = {};
+  if (typeof patch.title === "string" && patch.title.trim()) safePatch.title = patch.title.trim();
+  if (typeof patch.excerpt === "string" && patch.excerpt.trim()) safePatch.excerpt = patch.excerpt.trim();
+  if (Object.keys(safePatch).length === 0) {
+    return { error: "El valor no puede quedar vacío." };
+  }
+
+  await db.update(posts).set(safePatch).where(eq(posts.id, postId));
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+/**
+ * Guarda el override de estilo de tarjeta (fondo/espaciado/bordes) de UN
+ * eje temático puntual — ver ContainerStyleTrigger.tsx / TopicCard.tsx.
+ * Se valida contra containerStyleSchema antes de guardar (nunca se acepta
+ * un valor arbitrario) y se reemplaza entero, no se mergea: así "quitar"
+ * un campo desde el panel (mandarlo `undefined`) también lo borra acá.
+ */
+export async function updateTopicStyle(
+  topicId: string,
+  style: ContainerStyle
+): Promise<UpdateBlockFieldState> {
+  const session = await getSession();
+  if (!session) {
+    return { error: "Tu sesión expiró. Volvé a iniciar sesión en /admin." };
+  }
+  if (!isDbConfigured) {
+    return { error: "La base de datos no está configurada todavía (falta DATABASE_URL)." };
+  }
+
+  let validated: ContainerStyle;
+  try {
+    validated = containerStyleSchema.parse(style);
+  } catch {
+    return { error: "El valor no es válido." };
+  }
+
+  await db.update(topics).set({ styleOverrides: validated }).where(eq(topics.id, topicId));
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+/**
+ * Igual que `updateTopicStyle` pero para una novedad puntual de Actualidad
+ * (tabla `posts`).
+ */
+export async function updatePostStyle(
+  postId: string,
+  style: ContainerStyle
+): Promise<UpdateBlockFieldState> {
+  const session = await getSession();
+  if (!session) {
+    return { error: "Tu sesión expiró. Volvé a iniciar sesión en /admin." };
+  }
+  if (!isDbConfigured) {
+    return { error: "La base de datos no está configurada todavía (falta DATABASE_URL)." };
+  }
+
+  let validated: ContainerStyle;
+  try {
+    validated = containerStyleSchema.parse(style);
+  } catch {
+    return { error: "El valor no es válido." };
+  }
+
+  await db.update(posts).set({ styleOverrides: validated }).where(eq(posts.id, postId));
   revalidatePath("/", "layout");
   return { success: true };
 }

@@ -8,12 +8,18 @@ export function Badge({
 }: {
   children: ReactNode;
   className?: string;
-  tone?: "brand" | "neutral" | "accent";
+  tone?: "brand" | "neutral" | "accent" | "solid-accent" | "solid-brand-light" | "solid-muted";
 }) {
   const toneClasses = {
     brand: "bg-brand-50 text-brand-700",
     neutral: "bg-bg-subtle text-fg-muted",
     accent: "bg-accent-500/10 text-accent-600",
+    // Variantes "solid-*": pastillas de color lleno con texto oscuro
+    // encima, como en el mockup de la landing (ver ArticleCard.tsx) — a
+    // diferencia de las de arriba, que son un tinte suave.
+    "solid-accent": "bg-accent-500 text-brand-900",
+    "solid-brand-light": "bg-brand-300 text-brand-900",
+    "solid-muted": "bg-fg-muted text-bg",
   } as const;
 
   return (

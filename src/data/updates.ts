@@ -1,4 +1,7 @@
+import type { ContainerStyle } from "@/db/blocks";
+
 export type UpdateItem = {
+  id?: string;
   slug: string;
   title: string;
   date: string; // ISO date
@@ -11,6 +14,8 @@ export type UpdateItem = {
     | "comunicados"
     | "recorridas"
     | "posiciones_institucionales";
+  /** Override de estilo de tarjeta, guardado desde el modo edición en vivo. */
+  styleOverrides?: ContainerStyle | null;
 };
 
 /**

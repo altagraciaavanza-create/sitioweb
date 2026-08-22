@@ -9,6 +9,7 @@ import {
   jsonb,
   pgEnum,
 } from "drizzle-orm/pg-core";
+import type { ContainerStyle } from "./blocks";
 
 /**
  * Esquema de base de datos para el CMS de Alta Gracia Avanza.
@@ -167,6 +168,10 @@ export const topics = pgTable("topics", {
   expectedImpact: text("expected_impact"),
   order: integer("order").notNull().default(0),
   published: boolean("published").notNull().default(true),
+  // Override de estilo de tarjeta (fondo/padding/radio) aplicado desde el
+  // modo edición en vivo — ver src/db/blocks.ts (containerStyleSchema).
+  // NULL/{} = usa el estilo por defecto de TopicCard.
+  styleOverrides: jsonb("style_overrides").$type<ContainerStyle | null>(),
 });
 
 // ---------------------------------------------------------------------------
@@ -195,6 +200,8 @@ export const posts = pgTable("posts", {
   status: pageStatusEnum("status").notNull().default("draft"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  // Igual que topics.styleOverrides — ver src/db/blocks.ts.
+  styleOverrides: jsonb("style_overrides").$type<ContainerStyle | null>(),
 });
 
 // ---------------------------------------------------------------------------

@@ -6,6 +6,8 @@ import { TopicGridBlock } from "./TopicGridBlock";
 import { ArticleGridBlock } from "./ArticleGridBlock";
 import { CtaBlock } from "./CtaBlock";
 import { TeamGridBlock } from "./TeamGridBlock";
+import { InfoCardsBlock } from "./InfoCardsBlock";
+import { AffirmationsBlock } from "./AffirmationsBlock";
 import { ImageBlock } from "./ImageBlock";
 import { EmptyStateBlock } from "./EmptyStateBlock";
 import { ContentListBlock } from "./ContentListBlock";
@@ -25,6 +27,8 @@ export const blockRegistry: Record<BlockType, ComponentType<{ id: string; conten
   article_grid: ArticleGridBlock,
   cta: CtaBlock,
   team_grid: TeamGridBlock,
+  info_cards: InfoCardsBlock,
+  affirmations: AffirmationsBlock,
   image: ImageBlock,
   empty_state: EmptyStateBlock,
   content_list: ContentListBlock,

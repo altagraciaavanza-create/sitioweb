@@ -192,13 +192,18 @@ export async function getPublishedPosts(limit?: number) {
   const rows = limit ? await query.limit(limit) : await query;
 
   // Adaptador: el componente ArticleCard espera { slug, title, excerpt,
-  // date, category } — mapeamos desde el modelo de DB.
+  // date, category } — mapeamos desde el modelo de DB. `id` se suma
+  // aparte (no lo pide el tipo estático UpdateItem, que no aplica cuando
+  // no hay DB) para que el modo edición en vivo pueda guardar cambios de
+  // título/resumen puntuales vía updatePostField (ver EditableArticleGrid).
   return rows.map((post) => ({
+    id: post.id,
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt,
     date: (post.publishedAt ?? post.createdAt).toISOString(),
     category: post.category,
+    styleOverrides: post.styleOverrides,
   }));
 }
 

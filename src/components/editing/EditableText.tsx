@@ -13,10 +13,16 @@ import { cn } from "@/lib/utils";
  * plano, sin costo ni marcado extra: el doble clic para editar y el
  * selector de color solo existen cuando un admin activó el modo edición.
  *
- * `field`/`colorField` son las claves del `content` JSON del bloque (ver
- * src/db/blocks.ts) que se actualizan al guardar — este componente no sabe
- * nada del tipo de bloque, solo persiste `{ [field]: valor }` vía la server
- * action `updateBlockField`.
+ * `field`/`colorField` son las claves que se actualizan al guardar. Por
+ * default persiste `{ [field]: valor }` sobre el `content` JSON del bloque
+ * (`blockId`) vía la server action `updateBlockField` — sirve para
+ * cualquier campo de texto a nivel de bloque (título, bajada, etc).
+ *
+ * Para textos que NO viven en el `content` de un bloque — un ítem suelto
+ * dentro de un array (ver PrinciplesBlock.tsx), o una fila de otra tabla
+ * como `topics`/`posts` (ver SortableTopicGrid.tsx) — se puede pasar
+ * `onSave` para reemplazar ese guardado default por cualquier server
+ * action que reciba el mismo `patch`.
  */
 export function EditableText({
   blockId,
@@ -28,6 +34,7 @@ export function EditableText({
   colorValue,
   style,
   multiline = false,
+  onSave,
 }: {
   blockId: string;
   field: string;
@@ -38,6 +45,8 @@ export function EditableText({
   colorValue?: string | null;
   style?: CSSProperties;
   multiline?: boolean;
+  /** Reemplaza el guardado default (`updateBlockField(blockId, patch)`). */
+  onSave?: (patch: Record<string, unknown>) => Promise<{ error?: string } | void>;
 }) {
   const { isAdmin, editMode } = useEditMode();
   const [text, setText] = useState(value);
@@ -59,7 +68,7 @@ export function EditableText({
 
   function save(patch: Record<string, unknown>) {
     startTransition(async () => {
-      const result = await updateBlockField(blockId, patch);
+      const result = (await (onSave ? onSave(patch) : updateBlockField(blockId, patch))) ?? {};
       if (result.error) {
         toast({ variant: "danger", title: "No se pudo guardar", description: result.error });
       }

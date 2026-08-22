@@ -1,7 +1,8 @@
 import { Section } from "@/components/ui/Section";
 import { TopicCard } from "@/components/ui/TopicCard";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { getPublishedTopics } from "@/lib/content";
+import { PageRenderer } from "@/components/blocks/PageRenderer";
+import { getPublishedTopics, getPublishedPageBySlug } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata = buildMetadata({
@@ -11,6 +12,11 @@ export const metadata = buildMetadata({
 });
 
 export default async function IdeasPage() {
+  const page = await getPublishedPageBySlug("ideas");
+  if (page) {
+    return <PageRenderer pageId={page.id} blocks={page.blocks} />;
+  }
+
   const topics = await getPublishedTopics();
 
   return (

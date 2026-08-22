@@ -3,12 +3,14 @@
 import { useState, type ReactNode } from "react";
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   PointerSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -46,16 +48,25 @@ export function SortableItemGrid<T>({
 }) {
   const { isAdmin, editMode } = useEditMode();
   const [ordered, setOrdered] = useState(items);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const { toast } = useToast();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  // OJO: `lastPropsIds` sigue únicamente lo que llegó por props (los datos
+  // del servidor), nunca lo que acabamos de arrastrar nosotros. Si se usara
+  // la misma variable para las dos cosas (como pasaba antes), el propio
+  // arrastre local se malinterpretaba como "llegaron props nuevas" en el
+  // render inmediatamente posterior (los props todavía no cambiaron, sigue
+  // en vuelo el guardado) y se deshacía solo, antes de que el guardado
+  // siquiera terminara — esa era la causa del "se mueve y vuelve a su
+  // lugar".
   const currentIds = items.map(getId).join(",");
-  const [lastIds, setLastIds] = useState(currentIds);
-  if (currentIds !== lastIds) {
-    setLastIds(currentIds);
+  const [lastPropsIds, setLastPropsIds] = useState(currentIds);
+  if (currentIds !== lastPropsIds) {
+    setLastPropsIds(currentIds);
     setOrdered(items);
   }
 
@@ -69,17 +80,22 @@ export function SortableItemGrid<T>({
     );
   }
 
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(String(event.active.id));
+  }
+
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    setActiveId(null);
     if (!over || active.id === over.id) return;
 
     const oldIndex = ordered.findIndex((item) => getId(item) === active.id);
     const newIndex = ordered.findIndex((item) => getId(item) === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
     const reordered = [...ordered];
     const [moved] = reordered.splice(oldIndex, 1);
     reordered.splice(newIndex, 0, moved);
     setOrdered(reordered);
-    setLastIds(reordered.map(getId).join(","));
 
     const result = await onReorder(reordered.map(getId));
     if (result.error) {
@@ -87,28 +103,41 @@ export function SortableItemGrid<T>({
     }
   }
 
+  function handleDragCancel() {
+    setActiveId(null);
+  }
+
+  const activeItem = activeId != null ? ordered.find((item) => getId(item) === activeId) : null;
+
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
+    >
       <SortableContext items={ordered.map(getId)} strategy={rectSortingStrategy}>
         <div className={className}>
           {ordered.map((item) => (
-            <SortableItem key={getId(item)} id={getId(item)}>
+            <SortableItem key={getId(item)} id={getId(item)} isActive={getId(item) === activeId}>
               {renderItem(item)}
             </SortableItem>
           ))}
         </div>
       </SortableContext>
+      <DragOverlay>{activeItem ? <div className="opacity-90 shadow-2xl">{renderItem(activeItem)}</div> : null}</DragOverlay>
     </DndContext>
   );
 }
 
-function SortableItem({ id, children }: { id: string; children: ReactNode }) {
+function SortableItem({ id, children, isActive }: { id: string; children: ReactNode; isActive?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.6 : 1,
+    opacity: isDragging || isActive ? 0.4 : 1,
   };
 
   return (
