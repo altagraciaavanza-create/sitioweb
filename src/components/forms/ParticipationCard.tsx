@@ -29,7 +29,7 @@ export function ParticipationCard({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="h-full w-full rounded-lg border border-border bg-white p-6 text-left shadow-sm transition-shadow duration-150 hover:shadow-md"
+          className="h-full w-full rounded-lg border border-border bg-fg/5 p-6 text-left shadow-sm transition-shadow duration-150 hover:bg-fg/8 hover:shadow-md"
         >
           <h2 className="text-base font-semibold text-fg">{title}</h2>
           <p className="mt-2 text-sm leading-relaxed text-fg-muted">{description}</p>

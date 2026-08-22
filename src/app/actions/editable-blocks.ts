@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db, isDbConfigured } from "@/db";
-import { pageBlocks } from "@/db/schema";
+import { pageBlocks, topics } from "@/db/schema";
 import { validateBlockContent, type BlockType } from "@/db/blocks";
 import { getSession } from "@/lib/auth";
 
@@ -56,5 +56,64 @@ export async function updateBlockField(
   // ruta puntual.
   revalidatePath("/", "layout");
 
+  return { success: true };
+}
+
+export type ReorderState = { error?: string; success?: boolean };
+
+/**
+ * Reordena las secciones (bloques) de una página desde el modo edición en
+ * vivo (arrastrar y soltar directamente sobre el sitio público, ver
+ * src/components/editing/SortableBlockList.tsx). Mismo chequeo de sesión
+ * que updateBlockField — nunca confiar en que el modo edición esté oculto
+ * en el cliente.
+ */
+export async function reorderPageBlocksPublic(
+  pageId: string,
+  orderedIds: string[]
+): Promise<ReorderState> {
+  const session = await getSession();
+  if (!session) {
+    return { error: "Tu sesión expiró. Volvé a iniciar sesión en /admin." };
+  }
+  if (!isDbConfigured) {
+    return { error: "La base de datos no está configurada todavía (falta DATABASE_URL)." };
+  }
+
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      db
+        .update(pageBlocks)
+        .set({ order: index })
+        .where(eq(pageBlocks.id, id))
+    )
+  );
+
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+/**
+ * Reordena los ejes temáticos (topics) desde la grilla de "Ideas"/Agenda
+ * en modo edición en vivo. Los topics no viven en el `content` JSON de un
+ * bloque — son su propia tabla, con su propia columna `order` — por eso
+ * necesitan esta acción separada en vez de updateBlockField.
+ */
+export async function reorderTopicsPublic(orderedIds: string[]): Promise<ReorderState> {
+  const session = await getSession();
+  if (!session) {
+    return { error: "Tu sesión expiró. Volvé a iniciar sesión en /admin." };
+  }
+  if (!isDbConfigured) {
+    return { error: "La base de datos no está configurada todavía (falta DATABASE_URL)." };
+  }
+
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      db.update(topics).set({ order: index }).where(eq(topics.id, id))
+    )
+  );
+
+  revalidatePath("/", "layout");
   return { success: true };
 }

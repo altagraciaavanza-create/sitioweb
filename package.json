@@ -16,7 +16,8 @@
     "db:seed-admin": "tsx scripts/seed-admin.ts",
     "db:seed-content": "tsx scripts/seed-content.ts",
     "db:seed-participation-forms": "tsx scripts/seed-participation-forms.ts",
-    "db:seed-home-page": "tsx scripts/seed-home-page.ts"
+    "db:seed-home-page": "tsx scripts/seed-home-page.ts",
+    "db:seed-deep-navy-theme": "tsx scripts/seed-deep-navy-theme.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

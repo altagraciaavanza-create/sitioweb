@@ -1,6 +1,6 @@
 import { Section } from "@/components/ui/Section";
-import { TopicCard } from "@/components/ui/TopicCard";
 import { getPublishedTopics } from "@/lib/content";
+import { SortableTopicGrid } from "./SortableTopicGrid";
 import type { BlockContent } from "@/db/blocks";
 
 export async function TopicGridBlock({ content }: { content: BlockContent<"topic_grid"> }) {
@@ -17,11 +17,7 @@ export async function TopicGridBlock({ content }: { content: BlockContent<"topic
           {description ? <p className="mt-3 text-lg text-fg-muted">{description}</p> : null}
         </div>
       </div>
-      <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {topics.map((topic) => (
-          <TopicCard key={topic.slug} topic={topic} />
-        ))}
-      </div>
+      <SortableTopicGrid topics={topics} />
     </Section>
   );
 }

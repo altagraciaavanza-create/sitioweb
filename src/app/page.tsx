@@ -1,32 +1,39 @@
-import { Section } from "@/components/ui/Section";
-import { TopicCard } from "@/components/ui/TopicCard";
-import { getPublishedTopics } from "@/lib/content";
+import { Hero } from "@/components/home/Hero";
+import { Intro } from "@/components/home/Intro";
+import { PrinciplesSection } from "@/components/home/PrinciplesSection";
+import { AgendaSection } from "@/components/home/AgendaSection";
+import { CurrentActivity } from "@/components/home/CurrentActivity";
+import { ParticipationCallout } from "@/components/home/ParticipationCallout";
+import { JoinSection } from "@/components/home/JoinSection";
+import { PageRenderer } from "@/components/blocks/PageRenderer";
+import { getPublishedPageBySlug } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata = buildMetadata({
-  path: "/ideas",
-  title: "Ideas",
-  description: "Ideas y propuestas de Alta Gracia Avanza organizadas por eje temático.",
+  path: "/",
+  description:
+    "Alta Gracia Avanza: una ciudad más libre, transparente, moderna y con oportunidades se construye participando.",
 });
 
-export default async function IdeasPage() {
-  const topics = await getPublishedTopics();
+export default async function Home() {
+  // La home es una página del page builder con slug "" (vacío). Si todavía
+  // no existe en la base de datos (o no hay DB configurada), se muestra la
+  // versión estática de la Etapa 1 como fallback.
+  const page = await getPublishedPageBySlug("");
+
+  if (page) {
+    return <PageRenderer pageId={page.id} blocks={page.blocks} />;
+  }
 
   return (
-    <Section tone="default">
-      <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-fg md:text-5xl">
-          Ideas para Alta Gracia
-        </h1>
-        <p className="mt-4 text-lg text-fg-muted">
-          Nuestra agenda de propuestas, organizada por eje temático.
-        </p>
-      </div>
-      <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {topics.map((topic) => (
-          <TopicCard key={topic.slug} topic={topic} />
-        ))}
-      </div>
-    </Section>
+    <>
+      <Hero />
+      <Intro />
+      <PrinciplesSection />
+      <AgendaSection />
+      <CurrentActivity />
+      <ParticipationCallout />
+      <JoinSection />
+    </>
   );
 }
