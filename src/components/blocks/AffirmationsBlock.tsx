@@ -1,3 +1,5 @@
+"use client";
+
 import type { CSSProperties } from "react";
 import { Section } from "@/components/ui/Section";
 import { SortableItemGrid } from "@/components/editing/SortableItemGrid";
