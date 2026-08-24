@@ -11,7 +11,7 @@ export const siteConfig = {
   tagline: "Alta Gracia puede avanzar.",
   description:
     "Alta Gracia Avanza es un espacio político local que promueve una ciudad más libre, transparente, moderna y con oportunidades, construida con la participación de sus vecinos.",
-  url: "https://www.altagraciaavanza.ar", // TODO: reemplazar por el dominio definitivo
+  url: "https://www.altagraciaavanza.org",
   locale: "es_AR",
 
   contact: {
