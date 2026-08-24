@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { db, isDbConfigured } from "@/db";
 import { siteSettings } from "@/db/schema";
+import { uploadImage } from "@/lib/storage";
 
 const settingsSchema = z.object({
   name: z.string().min(1),
@@ -60,4 +61,29 @@ export async function updateSiteSettings(
   revalidatePath("/", "layout");
   revalidatePath("/admin/settings");
   return { success: true };
+}
+
+export type UploadOgImageState = { url?: string; error?: string };
+
+/**
+ * Sube la imagen social por defecto (Open Graph) a Supabase Storage y
+ * devuelve su URL pública. Se guarda recién cuando se envía el formulario
+ * completo (el campo oculto `ogImageUrl` viaja con el resto de los datos),
+ * igual que el logo en /admin/identidad.
+ */
+export async function uploadOgImage(formData: FormData): Promise<UploadOgImageState> {
+  if (!isDbConfigured) {
+    return { error: "La base de datos no está configurada todavía (falta DATABASE_URL)." };
+  }
+  try {
+    const file = formData.get("ogImage");
+    if (!(file instanceof File)) {
+      return { error: "No se recibió ningún archivo." };
+    }
+    const url = await uploadImage(file, "og-images");
+    if (!url) return { error: "No se pudo subir la imagen." };
+    return { url };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
 }
