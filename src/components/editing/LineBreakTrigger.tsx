@@ -20,16 +20,30 @@ import { useToast } from "@/components/ui/Toast";
 export function LineBreakTrigger({
   label,
   value,
+  lineSizes,
+  baseFontSize,
   onSave,
 }: {
   label: string;
   value: string;
-  onSave: (text: string) => Promise<{ error?: string } | void>;
+  /**
+   * Tamaño de fuente por línea, alineado por índice con las líneas
+   * resultantes de cortar `value` en `\n` (ver `titleLineSizes` en
+   * src/db/blocks.ts). `undefined` en una posición = esa línea usa
+   * `baseFontSize` (el tamaño general del texto, si lo hay).
+   */
+  lineSizes?: (number | undefined)[];
+  /** Tamaño general del texto (ej. `titleStyle.fontSize`) — solo para mostrar como referencia cuando una línea no tiene override. */
+  baseFontSize?: number;
+  onSave: (text: string, lineSizes: (number | undefined)[]) => Promise<{ error?: string } | void>;
 }) {
   const [open, setOpen] = useState(false);
   const parsed = parseValue(value);
   const [words, setWords] = useState(parsed.words);
   const [breaksAfter, setBreaksAfter] = useState<Set<number>>(parsed.breaksAfter);
+  const [sizes, setSizes] = useState<(number | undefined)[]>(
+    resizeSizes(lineSizes ?? [], splitIntoLines(parsed.words, parsed.breaksAfter).length)
+  );
   const [, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -42,12 +56,16 @@ export function LineBreakTrigger({
     const reparsed = parseValue(value);
     setWords(reparsed.words);
     setBreaksAfter(reparsed.breaksAfter);
+    setSizes(resizeSizes(lineSizes ?? [], splitIntoLines(reparsed.words, reparsed.breaksAfter).length));
   }
 
-  function persist(next: Set<number>) {
-    setBreaksAfter(next);
+  function persist(nextBreaks: Set<number>, nextSizes?: (number | undefined)[]) {
+    const lineCount = splitIntoLines(words, nextBreaks).length;
+    const resized = resizeSizes(nextSizes ?? sizes, lineCount);
+    setBreaksAfter(nextBreaks);
+    setSizes(resized);
     startTransition(async () => {
-      const result = (await onSave(buildText(words, next))) ?? {};
+      const result = (await onSave(buildText(words, nextBreaks), resized)) ?? {};
       if (result.error) {
         toast({ variant: "danger", title: "No se pudo guardar", description: result.error });
       }
@@ -68,6 +86,12 @@ export function LineBreakTrigger({
     const next = new Set(breaksAfter);
     next.delete(idx);
     persist(next);
+  }
+
+  function setLineSize(lineIndex: number, size: number | undefined) {
+    const next = [...sizes];
+    next[lineIndex] = size;
+    persist(breaksAfter, next);
   }
 
   const previewLines = splitIntoLines(words, breaksAfter);
@@ -172,12 +196,52 @@ export function LineBreakTrigger({
                 marginBottom: 4,
               }}
             >
-              Vista previa ({previewLines.length} {previewLines.length === 1 ? "línea" : "líneas"})
+              Tamaño por línea ({previewLines.length} {previewLines.length === 1 ? "línea" : "líneas"})
             </p>
-            <div style={{ fontSize: 13, lineHeight: 1.3, color: "#0f172a" }}>
-              {previewLines.map((line, i) => (
-                <div key={i}>{line.join(" ")}</div>
-              ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {previewLines.map((line, i) => {
+                const size = sizes[i];
+                return (
+                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#0f172a",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={line.join(" ")}
+                    >
+                      {line.join(" ")}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <input
+                        type="range"
+                        min={14}
+                        max={140}
+                        step={1}
+                        value={size ?? baseFontSize ?? 48}
+                        onChange={(e) => setLineSize(i, Number(e.target.value))}
+                        style={{ flex: 1 }}
+                      />
+                      <span style={{ fontSize: 11, color: "#64748b", width: 68, textAlign: "right" }}>
+                        {size != null ? `${size}px` : "auto"}
+                      </span>
+                      {size != null ? (
+                        <button
+                          type="button"
+                          onClick={() => setLineSize(i, undefined)}
+                          title="Volver al tamaño automático"
+                          style={{ fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer" }}
+                        >
+                          Quitar
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -288,4 +352,13 @@ function buildText(words: string[], breaksAfter: Set<number>) {
   return splitIntoLines(words, breaksAfter)
     .map((line) => line.join(" "))
     .join("\n");
+}
+
+/** Ajusta el array de tamaños por línea a `targetLen` líneas — recorta o
+ * rellena con `undefined` (= "automático") según haga falta, para que
+ * siempre quede alineado por índice con las líneas actuales del texto. */
+function resizeSizes(sizes: (number | undefined)[], targetLen: number): (number | undefined)[] {
+  if (sizes.length === targetLen) return sizes;
+  if (sizes.length > targetLen) return sizes.slice(0, targetLen);
+  return [...sizes, ...Array(targetLen - sizes.length).fill(undefined)];
 }

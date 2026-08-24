@@ -42,6 +42,8 @@ export function EditableText({
   sizeField,
   sizeValue,
   sizeSupports,
+  lineSizesField,
+  lineSizesValue,
   onSave,
 }: {
   blockId: string;
@@ -69,6 +71,15 @@ export function EditableText({
   sizeField?: string;
   sizeValue?: ContainerStyle | null;
   sizeSupports?: StyleSupports;
+  /**
+   * "Edición extrema": tamaño de fuente INDEPENDIENTE por línea (ej. una
+   * línea del título más grande que la otra), alineado por índice con las
+   * líneas de `value` separadas por `\n`. Solo tiene sentido junto con
+   * `lineBreakEditable` — el control vive dentro de LineBreakTrigger.tsx.
+   * `undefined` en una línea = usa `sizeValue.fontSize` (o automático).
+   */
+  lineSizesField?: string;
+  lineSizesValue?: (number | undefined)[] | null;
   /** Reemplaza el guardado default (`updateBlockField(blockId, patch)`). */
   onSave?: (patch: Record<string, unknown>) => Promise<{ error?: string } | void>;
 }) {
@@ -95,11 +106,14 @@ export function EditableText({
     ...style,
     ...sizeStyle,
   };
+  const hasLineSizeOverrides = Boolean(lineSizesValue && lineSizesValue.some((s) => s != null));
 
   if (!isAdmin || !editMode) {
     return (
       <Tag className={className} style={mergedStyle}>
-        {value}
+        {hasLineSizeOverrides
+          ? renderStyledLines(value, lineSizesValue ?? [], sizeValue?.fontSize)
+          : value}
       </Tag>
     );
   }
@@ -113,11 +127,13 @@ export function EditableText({
     });
   }
 
-  function saveLineBreaks(newText: string) {
+  function saveLineBreaks(newText: string, newLineSizes: (number | undefined)[]) {
     lastSaved.current = newText;
     setText(newText);
     if (ref.current) ref.current.textContent = newText;
-    return onSave ? onSave({ [field]: newText }) : updateBlockField(blockId, { [field]: newText });
+    const patch: Record<string, unknown> = { [field]: newText };
+    if (lineSizesField) patch[lineSizesField] = newLineSizes;
+    return onSave ? onSave(patch) : updateBlockField(blockId, patch);
   }
 
   function applyTextStyleLocal(next: ContainerStyle) {
@@ -172,11 +188,17 @@ export function EditableText({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
       >
-        {text}
+        {isEditing || !hasLineSizeOverrides ? text : renderStyledLines(text, lineSizesValue ?? [], sizeValue?.fontSize)}
       </Tag>
 
       {lineBreakEditable ? (
-        <LineBreakTrigger label="Ajustar líneas" value={text} onSave={saveLineBreaks} />
+        <LineBreakTrigger
+          label="Ajustar líneas"
+          value={text}
+          lineSizes={lineSizesValue ?? undefined}
+          baseFontSize={sizeValue?.fontSize}
+          onSave={saveLineBreaks}
+        />
       ) : null}
 
       {sizeEditable ? (
@@ -251,4 +273,23 @@ export function EditableText({
       ) : null}
     </span>
   );
+}
+
+/**
+ * Parte un texto en líneas (por `\n`) y renderiza cada una en un bloque
+ * propio con su tamaño de fuente — "edición extrema": una línea puede ser
+ * más grande que otra (ver `titleLineSizes` en src/db/blocks.ts). Solo se
+ * usa cuando hay al menos un override; si no, se renderiza el string plano
+ * (ver `hasLineSizeOverrides` en el componente) para no romper el truco de
+ * `white-space: pre-line` + un único nodo de texto.
+ */
+function renderStyledLines(value: string, lineSizes: (number | undefined)[], baseFontSize?: number) {
+  return value.split("\n").map((line, i) => {
+    const size = lineSizes[i] ?? baseFontSize;
+    return (
+      <span key={i} style={{ display: "block", fontSize: size != null ? `${size}px` : undefined }}>
+        {line}
+      </span>
+    );
+  });
 }

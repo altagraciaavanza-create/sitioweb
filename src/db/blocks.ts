@@ -67,6 +67,12 @@ export const heroBlockSchema = z.object({
   // Tamaño y posición del título en sí (no del contenedor de la sección,
   // que es `containerStyle` de más abajo) — ver TextStyleTrigger.tsx.
   titleStyle: containerStyleSchema.optional(),
+  // Tamaño de fuente POR LÍNEA del título — ej. "Alta Gracia," en 64px y
+  // "avancemos." en 96px. Se alinea por índice con las líneas de `title`
+  // separadas por "\n" (ver LineBreakTrigger.tsx). Un valor `undefined` en
+  // una posición = esa línea usa `titleStyle.fontSize` (o el tamaño
+  // automático si tampoco hay override ahí).
+  titleLineSizes: z.array(z.number().min(10).max(200).optional()).optional(),
   containerStyle: containerStyleSchema.optional(),
 });
 

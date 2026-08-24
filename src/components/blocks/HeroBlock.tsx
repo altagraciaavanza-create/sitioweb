@@ -17,6 +17,7 @@ export function HeroBlock({ id, content }: { id: string; content: BlockContent<"
     titleColor,
     descriptionColor,
     titleStyle,
+    titleLineSizes,
     containerStyle = {},
   } = content;
   const sectionStyle: CSSProperties = {
@@ -77,6 +78,8 @@ export function HeroBlock({ id, content }: { id: string; content: BlockContent<"
           sizeField="titleStyle"
           sizeValue={titleStyle}
           sizeSupports={{ fontSize: true, fontSizeMin: 28, fontSizeMax: 120, fontSizeDefault: 68, margin: true }}
+          lineSizesField="titleLineSizes"
+          lineSizesValue={titleLineSizes}
         />
         {description ? (
           <EditableText
