@@ -54,7 +54,7 @@ async function main() {
       type: "hero",
       order: 0,
       content: {
-        title: "Alta Gracia puede avanzar.",
+        title: "Alta Gracia,\navancemos.",
         description:
           "Una ciudad más libre, transparente, moderna y con oportunidades se construye participando.",
         primaryCta: { label: "Conocé nuestras ideas", href: "/ideas" },

@@ -5,6 +5,7 @@ import { useEditMode } from "./EditModeContext";
 import { updateBlockField } from "@/app/actions/editable-blocks";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
+import { LineBreakTrigger } from "./LineBreakTrigger";
 
 /**
  * Texto editable en vivo sobre el sitio público — el corazón del "modo
@@ -34,6 +35,7 @@ export function EditableText({
   colorValue,
   style,
   multiline = false,
+  lineBreakEditable = false,
   onSave,
 }: {
   blockId: string;
@@ -45,6 +47,13 @@ export function EditableText({
   colorValue?: string | null;
   style?: CSSProperties;
   multiline?: boolean;
+  /**
+   * Suma el control de "dónde se corta la línea" (ver LineBreakTrigger.tsx):
+   * arrastrar un quiebre entre dos palabras para armar 1, 2 o más líneas a
+   * propósito, en vez de depender solo del wrap automático del navegador.
+   * Pensado para títulos cortos (el Hero, por ejemplo), no para párrafos.
+   */
+  lineBreakEditable?: boolean;
   /** Reemplaza el guardado default (`updateBlockField(blockId, patch)`). */
   onSave?: (patch: Record<string, unknown>) => Promise<{ error?: string } | void>;
 }) {
@@ -58,9 +67,11 @@ export function EditableText({
   const ref = useRef<HTMLElement>(null);
   const lastSaved = useRef(value);
 
+  const mergedStyle = lineBreakEditable ? { whiteSpace: "pre-line" as const, ...style } : style;
+
   if (!isAdmin || !editMode) {
     return (
-      <Tag className={className} style={style}>
+      <Tag className={className} style={mergedStyle}>
         {value}
       </Tag>
     );
@@ -73,6 +84,13 @@ export function EditableText({
         toast({ variant: "danger", title: "No se pudo guardar", description: result.error });
       }
     });
+  }
+
+  function saveLineBreaks(newText: string) {
+    lastSaved.current = newText;
+    setText(newText);
+    if (ref.current) ref.current.textContent = newText;
+    return onSave ? onSave({ [field]: newText }) : updateBlockField(blockId, { [field]: newText });
   }
 
   function handleBlur() {
@@ -107,7 +125,7 @@ export function EditableText({
           "rounded outline-offset-2",
           isEditing ? "outline outline-2 outline-brand-500" : "cursor-text outline outline-1 outline-dashed outline-brand-300/60"
         )}
-        style={style}
+        style={mergedStyle}
         contentEditable
         suppressContentEditableWarning
         onDoubleClick={() => setIsEditing(true)}
@@ -117,6 +135,10 @@ export function EditableText({
       >
         {text}
       </Tag>
+
+      {lineBreakEditable ? (
+        <LineBreakTrigger label="Ajustar líneas" value={text} onSave={saveLineBreaks} />
+      ) : null}
 
       {colorField ? (
         <span style={{ position: "absolute", top: -14, right: -14 }}>

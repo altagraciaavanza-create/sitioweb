@@ -72,6 +72,7 @@ export function HeroBlock({ id, content }: { id: string; content: BlockContent<"
           colorField="titleColor"
           colorValue={titleColor}
           style={titleColor ? { color: titleColor } : undefined}
+          lineBreakEditable
         />
         {description ? (
           <EditableText
