@@ -38,7 +38,7 @@ export const siteConfig = {
     titleTemplate: "%s · Alta Gracia Avanza",
     description:
       "Plataforma cívica de Alta Gracia Avanza: ideas, propuestas, actividades y participación ciudadana para Alta Gracia.",
-    ogImage: "/og/default.png", // TODO: generar imagen social definitiva
+    ogImage: "/og/default.jpg",
   },
 } as const;
 
