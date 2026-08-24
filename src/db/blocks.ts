@@ -49,6 +49,10 @@ export const containerStyleSchema = z.object({
   // sus vecinos, sin romper el resto del layout.
   marginTop: z.number().min(-100).max(200).optional(),
   marginBottom: z.number().min(-100).max(200).optional(),
+  // Mismo schema se reutiliza para el estilo de un TEXTO puntual (ver
+  // TextStyleTrigger.tsx) — ahí solo importan fontSize + marginTop/Bottom
+  // (el "tamaño" y la "posición" del texto), el resto queda sin usar.
+  fontSize: z.number().min(10).max(200).optional(),
 });
 export type ContainerStyle = z.infer<typeof containerStyleSchema>;
 
@@ -60,6 +64,9 @@ export const heroBlockSchema = z.object({
   secondaryCta: z.object({ label: z.string(), href: z.string(), color: optionalHexColor }).optional(),
   titleColor: optionalHexColor,
   descriptionColor: optionalHexColor,
+  // Tamaño y posición del título en sí (no del contenedor de la sección,
+  // que es `containerStyle` de más abajo) — ver TextStyleTrigger.tsx.
+  titleStyle: containerStyleSchema.optional(),
   containerStyle: containerStyleSchema.optional(),
 });
 

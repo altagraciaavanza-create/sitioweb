@@ -6,6 +6,9 @@ import { updateBlockField } from "@/app/actions/editable-blocks";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { LineBreakTrigger } from "./LineBreakTrigger";
+import { TextStyleTrigger } from "./TextStyleTrigger";
+import type { StyleSupports } from "./StyleEditorContext";
+import type { ContainerStyle } from "@/db/blocks";
 
 /**
  * Texto editable en vivo sobre el sitio público — el corazón del "modo
@@ -36,6 +39,9 @@ export function EditableText({
   style,
   multiline = false,
   lineBreakEditable = false,
+  sizeField,
+  sizeValue,
+  sizeSupports,
   onSave,
 }: {
   blockId: string;
@@ -54,6 +60,15 @@ export function EditableText({
    * Pensado para títulos cortos (el Hero, por ejemplo), no para párrafos.
    */
   lineBreakEditable?: boolean;
+  /**
+   * Suma el ícono "Aa" (ver TextStyleTrigger.tsx) para tocar el tamaño de
+   * fuente y la posición (espaciado externo) de este texto puntual. Los
+   * tres se pasan juntos: el campo donde persiste (`sizeField`, ej.
+   * "titleStyle"), su valor actual, y qué controles mostrar.
+   */
+  sizeField?: string;
+  sizeValue?: ContainerStyle | null;
+  sizeSupports?: StyleSupports;
   /** Reemplaza el guardado default (`updateBlockField(blockId, patch)`). */
   onSave?: (patch: Record<string, unknown>) => Promise<{ error?: string } | void>;
 }) {
@@ -66,8 +81,20 @@ export function EditableText({
   const { toast } = useToast();
   const ref = useRef<HTMLElement>(null);
   const lastSaved = useRef(value);
+  const sizeEditable = Boolean(sizeField);
 
-  const mergedStyle = lineBreakEditable ? { whiteSpace: "pre-line" as const, ...style } : style;
+  const sizeStyle: CSSProperties = sizeValue
+    ? {
+        fontSize: sizeValue.fontSize != null ? `${sizeValue.fontSize}px` : undefined,
+        marginTop: sizeValue.marginTop != null ? `${sizeValue.marginTop}px` : undefined,
+        marginBottom: sizeValue.marginBottom != null ? `${sizeValue.marginBottom}px` : undefined,
+      }
+    : {};
+  const mergedStyle = {
+    ...(lineBreakEditable ? { whiteSpace: "pre-line" as const } : null),
+    ...style,
+    ...sizeStyle,
+  };
 
   if (!isAdmin || !editMode) {
     return (
@@ -91,6 +118,18 @@ export function EditableText({
     setText(newText);
     if (ref.current) ref.current.textContent = newText;
     return onSave ? onSave({ [field]: newText }) : updateBlockField(blockId, { [field]: newText });
+  }
+
+  function applyTextStyleLocal(next: ContainerStyle) {
+    if (!ref.current) return;
+    ref.current.style.fontSize = next.fontSize != null ? `${next.fontSize}px` : "";
+    ref.current.style.marginTop = next.marginTop != null ? `${next.marginTop}px` : "";
+    ref.current.style.marginBottom = next.marginBottom != null ? `${next.marginBottom}px` : "";
+  }
+
+  function saveTextStyle(next: ContainerStyle) {
+    if (!sizeField) return Promise.resolve({});
+    return onSave ? onSave({ [sizeField]: next }) : updateBlockField(blockId, { [sizeField]: next });
   }
 
   function handleBlur() {
@@ -138,6 +177,16 @@ export function EditableText({
 
       {lineBreakEditable ? (
         <LineBreakTrigger label="Ajustar líneas" value={text} onSave={saveLineBreaks} />
+      ) : null}
+
+      {sizeEditable ? (
+        <TextStyleTrigger
+          label="Tamaño y posición del texto"
+          value={sizeValue ?? {}}
+          supports={sizeSupports ?? { fontSize: true, margin: true }}
+          onChange={applyTextStyleLocal}
+          onSave={saveTextStyle}
+        />
       ) : null}
 
       {colorField ? (

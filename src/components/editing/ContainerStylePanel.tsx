@@ -51,6 +51,7 @@ export function ContainerStylePanel() {
       width: undefined,
       marginTop: undefined,
       marginBottom: undefined,
+      fontSize: undefined,
     });
   }
 
@@ -60,7 +61,8 @@ export function ContainerStylePanel() {
     local.radius != null ||
     local.width != null ||
     local.marginTop != null ||
-    local.marginBottom != null;
+    local.marginBottom != null ||
+    local.fontSize != null;
 
   return (
     <div
@@ -119,6 +121,29 @@ export function ContainerStylePanel() {
               </button>
             ) : null}
           </span>
+        </label>
+      ) : null}
+
+      {supports.fontSize ? (
+        <label style={{ fontSize: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+          Tamaño de texto — {local.fontSize != null ? `${local.fontSize}px` : "automático"}
+          <input
+            type="range"
+            min={supports.fontSizeMin ?? 14}
+            max={supports.fontSizeMax ?? 120}
+            step={1}
+            value={local.fontSize ?? supports.fontSizeDefault ?? supports.fontSizeMax ?? 48}
+            onChange={(e) => commit({ fontSize: Number(e.target.value) })}
+          />
+          {local.fontSize != null ? (
+            <button
+              type="button"
+              onClick={() => commit({ fontSize: undefined })}
+              style={{ fontSize: 11, color: "#64748b", background: "none", border: "none", cursor: "pointer", alignSelf: "flex-start" }}
+            >
+              Quitar
+            </button>
+          ) : null}
         </label>
       ) : null}
 

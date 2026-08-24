@@ -22,6 +22,14 @@ export type StyleSupports = {
   /** Espaciado externo (arriba/abajo) — el equivalente a "posición" en un
    * sitio de flujo normal, sin romper el layout con posicionamiento libre. */
   margin?: boolean;
+  /** Tamaño de texto en px — solo tiene sentido sobre un texto puntual
+   * (ver TextStyleTrigger.tsx), no sobre un contenedor. */
+  fontSize?: boolean;
+  fontSizeMin?: number;
+  fontSizeMax?: number;
+  /** Valor inicial del slider antes de tocarlo, si `value.fontSize` todavía
+   * no está seteado — para no arrancar siempre desde el mínimo. */
+  fontSizeDefault?: number;
 };
 
 export type StyleEditorTarget = {
