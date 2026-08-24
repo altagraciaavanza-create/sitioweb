@@ -97,16 +97,24 @@ export function LineBreakTrigger({
       {open ? (
         <div
           style={{
-            position: "absolute",
-            top: 28,
-            left: 0,
+            // Posición FIJA en pantalla (no relativa al texto) a propósito:
+            // si colgara del botón, un texto grande (ver TextStyleTrigger.tsx)
+            // hace que el propio panel tape el texto que se está editando —
+            // pasó en la práctica con el título del Hero a 88px. Mismo
+            // criterio que ya usa ContainerStylePanel.tsx (fixed), pero en
+            // la esquina opuesta para no chocar con ese panel si los dos
+            // están abiertos a la vez.
+            position: "fixed",
+            bottom: 16,
+            left: 16,
             background: "white",
             color: "#0f172a",
             borderRadius: 10,
             padding: 14,
             boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
             width: 340,
-            zIndex: 60,
+            maxWidth: "calc(100vw - 32px)",
+            zIndex: 70,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
