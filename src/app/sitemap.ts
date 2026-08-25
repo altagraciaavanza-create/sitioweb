@@ -3,6 +3,13 @@ import { siteConfig } from "@/data/site";
 import { getPublishedTopics, getPublishedPosts } from "@/lib/content";
 
 // Rutas ya en el menú (o accesibles desde el sitio de forma pública).
+// /vision y /propuestas quedan afuera a propósito: la guía de actualización
+// (Docs/guia-actualizacion-web.md, sección 2) define la navegación principal
+// como Inicio/Ideas/Nosotros/Actualidad/Participá + Sumate, sin agregar
+// "Visión" como ítem nuevo — su contenido real se integró como subsección
+// de /nosotros en vez de sumar una página huérfana al menú (ver sección 4.5
+// de la guía). Y /propuestas sigue sin link real y con noindex propio
+// mientras el Banco de Ideas no esté implementado de verdad (sección 15).
 const staticRoutes = [
   "/",
   "/nosotros",

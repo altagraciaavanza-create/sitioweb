@@ -2,19 +2,22 @@ import { Section } from "@/components/ui/Section";
 import { PageRenderer } from "@/components/blocks/PageRenderer";
 import { getPublishedPageBySlug } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
+import { visionAffirmations as affirmations } from "@/data/vision-affirmations";
 
-export const metadata = buildMetadata({
-  path: "/vision",
-  title: "Alta Gracia que queremos",
-  description: "La visión de ciudad de Alta Gracia Avanza.",
-});
-
-const affirmations = [
-  "Una Municipalidad que resuelva problemas en lugar de agregar trámites.",
-  "Una ciudad donde emprender y abrir un comercio sea más sencillo.",
-  "Una administración donde el vecino pueda conocer cómo se utilizan los recursos públicos.",
-  "Una Alta Gracia que genere oportunidades para quienes quieren construir su futuro en la ciudad.",
-];
+// Esta página no está linkeada desde ningún lado del sitio (ni menú
+// principal ni footer — ver guía de actualización, sección 2) y su
+// contenido real ahora se muestra también como subsección de /nosotros.
+// Se marca noindex para evitar contenido duplicado en buscadores; la ruta
+// se mantiene (no se borra) por si en el futuro se decide activarla como
+// página propia.
+export const metadata = {
+  ...buildMetadata({
+    path: "/vision",
+    title: "Alta Gracia que queremos",
+    description: "La visión de ciudad de Alta Gracia Avanza.",
+  }),
+  robots: { index: false, follow: true },
+};
 
 export default async function VisionPage() {
   const page = await getPublishedPageBySlug("vision");

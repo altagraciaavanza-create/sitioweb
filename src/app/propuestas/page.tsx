@@ -3,11 +3,20 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata = buildMetadata({
-  path: "/propuestas",
-  title: "Propuestas",
-  description: "Banco de ideas ciudadano de Alta Gracia Avanza.",
-});
+// Funcionalidad todavía en construcción (ver EmptyState más abajo) y sin
+// ningún link real hacia ella desde el resto del sitio. Google recomienda
+// explícitamente no indexar páginas "under construction"/thin content
+// (Search Essentials: contenido útil, no relleno) — se marca noindex hasta
+// que el Banco de Ideas esté implementado de verdad. `follow: true` para
+// que igual se sigan sus links salientes (ej. el botón a /participa).
+export const metadata = {
+  ...buildMetadata({
+    path: "/propuestas",
+    title: "Propuestas",
+    description: "Banco de ideas ciudadano de Alta Gracia Avanza.",
+  }),
+  robots: { index: false, follow: true },
+};
 
 export default function PropuestasPage() {
   return (

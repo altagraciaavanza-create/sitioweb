@@ -2,6 +2,7 @@ import { Section } from "@/components/ui/Section";
 import { PageRenderer } from "@/components/blocks/PageRenderer";
 import { getPublishedPageBySlug } from "@/lib/content";
 import { buildMetadata } from "@/lib/metadata";
+import { visionAffirmations } from "@/data/vision-affirmations";
 
 export const metadata = buildMetadata({
   path: "/nosotros",
@@ -34,6 +35,20 @@ export default async function NosotrosPage() {
           se construye colectivamente, con la participación de quienes creen
           que Alta Gracia puede avanzar.
         </p>
+
+        <h2 className="mt-16 text-2xl font-extrabold tracking-tight text-fg md:text-3xl">
+          La Alta Gracia que queremos
+        </h2>
+        <div className="mt-8 space-y-8">
+          {visionAffirmations.map((text) => (
+            <p
+              key={text}
+              className="border-l-4 border-brand-500 pl-6 text-xl font-semibold leading-snug text-fg md:text-2xl"
+            >
+              {text}
+            </p>
+          ))}
+        </div>
       </div>
     </Section>
   );
