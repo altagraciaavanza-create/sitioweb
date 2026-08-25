@@ -30,11 +30,51 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [activeTheme, session] = await Promise.all([getActiveBrandTheme(), getSession()]);
+  const [activeTheme, session, settings] = await Promise.all([
+    getActiveBrandTheme(),
+    getSession(),
+    getSiteSettings(),
+  ]);
+
+  // Datos estructurados (schema.org Organization) para que buscadores
+  // entiendan qué es el sitio — nombre, logo, contacto, redes — más allá
+  // del title/description sueltos. Ver guía de actualización, sección 24
+  // ("metadata coherente"). Todo sale de configuración real ya existente
+  // (site.ts / /admin/settings), no se inventa ningún dato acá; cada campo
+  // de contacto/red social solo se incluye si de verdad está configurado.
+  const orgName = settings?.name || siteConfig.name;
+  const orgDescription = settings?.description || siteConfig.description;
+  const email = settings?.contactEmail || siteConfig.contact.email;
+  const sameAs = [
+    settings?.instagramUrl || siteConfig.social.instagram,
+    settings?.facebookUrl || siteConfig.social.facebook,
+    settings?.twitterUrl || siteConfig.social.twitter,
+    settings?.tiktokUrl || siteConfig.social.tiktok,
+    settings?.youtubeUrl || siteConfig.social.youtube,
+  ].filter((url): url is string => Boolean(url));
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: orgName,
+    url: siteConfig.url,
+    description: orgDescription,
+    ...(activeTheme?.design.logoUrl
+      ? { logo: new URL(activeTheme.design.logoUrl, siteConfig.url).toString() }
+      : null),
+    ...(sameAs.length ? { sameAs } : null),
+    ...(email
+      ? { contactPoint: [{ "@type": "ContactPoint", email, contactType: "customer support" }] }
+      : null),
+  };
 
   return (
     <html lang="es" className={`h-full antialiased ${nexa.variable}`}>
       <body className="flex min-h-full flex-col bg-bg text-fg">
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <ToastProvider>
           <SiteChrome
             header={<Header />}
