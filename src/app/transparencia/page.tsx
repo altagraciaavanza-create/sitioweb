@@ -8,20 +8,13 @@ export const metadata = buildMetadata({
   description: "Documentación institucional y de gestión de Alta Gracia Avanza.",
 });
 
-const categories = [
-  "Autoridades",
-  "Responsables institucionales",
-  "Declaración de principios",
-  "Carta orgánica",
-  "Documentación partidaria",
-  "Aportes",
-  "Gastos",
-  "Balances",
-  "Informes",
-  "Normativa",
-  "Documentos públicos",
-];
-
+// Nota: esta página todavía no tiene ninguna categoría con contenido real
+// publicado. Mostrar de entrada una grilla de 11 categorías vacías ("todavía
+// no hay documentos en esta categoría" repetido 11 veces) debilita el
+// mensaje de transparencia en vez de reforzarlo (ver guía de actualización,
+// sección 17). Cuando haya al menos un documento real, esta página debería
+// pasar a listar únicamente las categorías que sí tengan contenido — no
+// todas de entrada.
 export default function TransparenciaPage() {
   return (
     <Section tone="default">
@@ -35,21 +28,10 @@ export default function TransparenciaPage() {
         </p>
       </div>
 
-      <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((category) => (
-          <div key={category} className="rounded-lg border border-border p-5">
-            <h2 className="text-sm font-semibold text-fg">{category}</h2>
-            <p className="mt-2 text-xs text-fg-muted">
-              Todavía no hay documentos publicados en esta categoría.
-            </p>
-          </div>
-        ))}
-      </div>
-
       <div className="mt-8">
         <EmptyState
-          title="Publicaremos la documentación a medida que esté disponible"
-          description="Nos comprometemos a mantener esta sección actualizada."
+          title="Todavía no hay documentación publicada"
+          description="Vamos a ir sumando acá la información institucional y de gestión del espacio a medida que esté lista."
         />
       </div>
     </Section>
