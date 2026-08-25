@@ -44,26 +44,20 @@ export default async function TopicPage(props: PageProps<"/ideas/[slug]">) {
           {topic.summary}
         </p>
 
-        <div className="mt-12 space-y-8">
-          {(blocks.length > 0
-            ? blocks
-            : [
-                { label: "Problema", text: "Contenido editable — completar diagnóstico del problema." },
-                { label: "Diagnóstico", text: "Contenido editable — completar diagnóstico técnico." },
-                { label: "Propuesta", text: "Contenido editable — completar propuesta concreta." },
-                { label: "Impacto esperado", text: "Contenido editable — completar impacto esperado." },
-              ]
-          ).map((block) => (
-            <div key={block.label}>
-              <h2 className="text-sm font-semibold tracking-wide text-brand-600 uppercase">
-                {block.label}
-              </h2>
-              <p className="mt-2 text-base leading-relaxed text-fg-muted">
-                {block.text}
-              </p>
-            </div>
-          ))}
-        </div>
+        {blocks.length > 0 ? (
+          <div className="mt-12 space-y-8">
+            {blocks.map((block) => (
+              <div key={block.label}>
+                <h2 className="text-sm font-semibold tracking-wide text-brand-600 uppercase">
+                  {block.label}
+                </h2>
+                <p className="mt-2 text-base leading-relaxed text-fg-muted">
+                  {block.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </Section>
   );

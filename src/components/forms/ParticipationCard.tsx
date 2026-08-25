@@ -33,7 +33,7 @@ export function ParticipationCard({
         >
           <h2 className="text-base font-semibold text-fg">{title}</h2>
           <p className="mt-2 text-sm leading-relaxed text-fg-muted">{description}</p>
-          <span className="mt-3 inline-block text-sm font-medium text-brand-600">Completar →</span>
+          <span className="mt-3 inline-block text-sm font-medium text-brand-600">Abrir formulario →</span>
         </button>
       ) : (
         <Card className="h-full">
