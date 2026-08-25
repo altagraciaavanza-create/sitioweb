@@ -109,7 +109,7 @@ export function PrinciplesBlock({ id, content }: { id: string; content: BlockCon
         supports={{ background: true, padding: true, margin: true }}
         onSave={(style) => updateBlockField(id, { containerStyle: style })}
       />
-      <span className="text-[13px] font-bold tracking-[0.14em] text-accent-500 uppercase">
+      <span className="text-[13px] font-bold tracking-[0.14em] text-[#93491a] uppercase">
         01 — Convicciones
       </span>
       <EditableText

@@ -25,7 +25,13 @@ export function TopicCard({ topic }: { topic: Topic }) {
     >
       <h3 className="text-lg font-black text-fg">{topic.title}</h3>
       <p className="mt-2.5 text-sm leading-relaxed text-fg-muted">{topic.summary}</p>
-      <span className="mt-4 inline-flex items-center text-sm font-bold text-accent-500">
+      {/* accent-500 (~3.09:1) y accent-600 (~4.44:1) sobre fondo blanco no
+          alcanzan el mínimo de 4.5:1 para texto normal (WCAG AA) — se usa
+          un tono más oscuro de la misma familia (~6.5:1) solo para este
+          texto. No está atado al sistema de theming admin-editable
+          (accent500/600 en /admin/identidad): si se cambia el color de
+          marca desde ahí, este valor no lo sigue automáticamente. */}
+      <span className="mt-4 inline-flex items-center text-sm font-bold text-[#93491a]">
         Ver propuesta →
       </span>
     </Link>

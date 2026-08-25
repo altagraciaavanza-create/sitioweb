@@ -35,7 +35,7 @@ export async function ArticleGridBlock({
       />
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="max-w-xl">
-          <span className="text-[13px] font-bold tracking-[0.14em] text-accent-500 uppercase">
+          <span className="text-[13px] font-bold tracking-[0.14em] text-[#93491a] uppercase">
             03 — Actualidad
           </span>
           <EditableText
@@ -59,7 +59,7 @@ export async function ArticleGridBlock({
         {ctaLabel && ctaHref ? (
           <Link
             href={ctaHref}
-            className="rounded-[10px] border-[1.5px] border-accent-500 px-6 py-3 text-center text-[15px] font-black whitespace-nowrap text-accent-500 transition-colors hover:bg-accent-500/10"
+            className="rounded-[10px] border-[1.5px] border-accent-500 px-6 py-3 text-center text-[15px] font-black whitespace-nowrap text-[#93491a] transition-colors hover:bg-accent-500/10"
           >
             {ctaLabel}
           </Link>

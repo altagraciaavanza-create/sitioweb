@@ -62,7 +62,7 @@ export function HeroBlock({ id, content }: { id: string; content: BlockContent<"
             field="eyebrow"
             value={eyebrow}
             as="p"
-            className="mb-5 text-[13px] font-bold tracking-[0.14em] text-accent-500 uppercase"
+            className="mb-5 text-[13px] font-bold tracking-[0.14em] text-[#93491a] uppercase"
           />
         ) : null}
         <EditableText
@@ -116,7 +116,7 @@ export function HeroBlock({ id, content }: { id: string; content: BlockContent<"
               <span style={{ position: "relative", display: "inline-block" }}>
                 <Link
                   href={secondaryCta.href}
-                  className="rounded-[10px] border-[1.5px] border-accent-500 px-8 py-4 text-center text-base font-black text-accent-500 transition-colors hover:bg-accent-500/10"
+                  className="rounded-[10px] border-[1.5px] border-accent-500 px-8 py-4 text-center text-base font-black text-[#93491a] transition-colors hover:bg-accent-500/10"
                   style={secondaryCta.color ? { borderColor: secondaryCta.color, color: secondaryCta.color } : undefined}
                 >
                   {secondaryCta.label}

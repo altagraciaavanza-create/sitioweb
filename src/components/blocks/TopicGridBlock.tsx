@@ -28,7 +28,7 @@ export async function TopicGridBlock({ id, content }: { id: string; content: Blo
       />
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="max-w-xl">
-          <span className="text-[13px] font-bold tracking-[0.14em] text-accent-500 uppercase">
+          <span className="text-[13px] font-bold tracking-[0.14em] text-[#93491a] uppercase">
             02 — Agenda
           </span>
           <EditableText

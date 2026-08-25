@@ -84,9 +84,10 @@ export function SortableTopicGrid({ topics }: { topics: Topic[] }) {
               multiline
               onSave={(patch) => updateTopicField(topicId, { summary: String(patch.summary ?? topic.summary) })}
             />
+            {/* Ver TopicCard.tsx: mismo fix de contraste. */}
             <Link
               href={`/ideas/${topic.slug}`}
-              className="mt-4 inline-flex items-center text-sm font-bold text-accent-500"
+              className="mt-4 inline-flex items-center text-sm font-bold text-[#93491a]"
             >
               Ver propuesta →
             </Link>

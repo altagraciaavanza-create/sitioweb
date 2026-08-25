@@ -54,7 +54,7 @@ export function CtaBlock({ id, content }: { id: string; content: BlockContent<"c
             className={
               solid
                 ? "mb-3 text-sm font-bold tracking-wide text-brand-900/70 uppercase"
-                : "mb-3 text-sm font-bold tracking-wide text-accent-500 uppercase"
+                : "mb-3 text-sm font-bold tracking-wide text-[#93491a] uppercase"
             }
           />
         ) : null}
